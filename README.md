@@ -78,25 +78,8 @@ cd insta-tool
 npm run setup
 ```
 
-### 2. Environment Configuration
 
-The `.env` file is already configured with MongoDB Atlas credentials:
-
-```env
-# Database (ALREADY CONFIGURED)
-MONGODB_URI=mongodb+srv://strongbox5695:*@!**^9862%@247c%8S43@cluster000.n00tsc0.mongodb.net/
-DB_NAME=insta_tool
-
-# Server
-PORT=3001
-NODE_ENV=development
-
-# File Storage  
-UPLOAD_DIR=uploads
-IMAGE_DIR=generated_images
-```
-
-### 3. Start Development
+### 2. Start Development
 
 ```bash
 # THE MAGIC COMMAND - starts everything fresh
