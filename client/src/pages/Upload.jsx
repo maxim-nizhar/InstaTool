@@ -26,11 +26,42 @@ const Upload = () => {
     if (!uploadedFile) return
 
     setIsProcessing(true)
-    // TODO: Implement CSV processing
-    setTimeout(() => {
+    
+    try {
+      const formData = new FormData()
+      formData.append('csvFile', uploadedFile)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const result = await response.json()
+      
+      if (response.ok) {
+        // Success - show results
+        alert(`✅ Success! Created ${result.summary.posts_created} posts in project "${result.project.name}"`)
+        
+        // Optional: Reset the form
+        setUploadedFile(null)
+        
+        // Optional: Navigate to projects or dashboard
+        // You could use react-router here to navigate
+        console.log('Processing results:', result)
+        
+      } else {
+        // Error from server
+        alert(`❌ Error: ${result.error}`)
+        console.error('Server error:', result)
+      }
+      
+    } catch (error) {
+      // Network or other error
+      alert(`❌ Failed to process CSV: ${error.message}`)
+      console.error('Upload error:', error)
+    } finally {
       setIsProcessing(false)
-      alert('CSV processing will be implemented soon!')
-    }, 2000)
+    }
   }
 
   return (
