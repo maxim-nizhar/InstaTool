@@ -15,9 +15,13 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  dbName: process.env.DB_NAME
+// MongoDB Connection  
+const mongoPassword = '*@!**^9862%@247c%8S43';
+const encodedPassword = encodeURIComponent(mongoPassword);
+const mongoUri = `mongodb+srv://strongbox5695:${encodedPassword}@cluster000.n00tsc0.mongodb.net/`;
+
+mongoose.connect(mongoUri, {
+  dbName: process.env.DB_NAME || 'insta_tool'
 })
 .then(() => {
   console.log('✅ Connected to MongoDB Atlas');
@@ -36,10 +40,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes (to be added)
-// app.use('/api/posts', require('./routes/posts'));
-// app.use('/api/projects', require('./routes/projects'));
-// app.use('/api/upload', require('./routes/upload'));
+// API Routes
+app.use('/api/posts', require('./routes/posts'));
+app.use('/api/upload', require('./routes/upload'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
