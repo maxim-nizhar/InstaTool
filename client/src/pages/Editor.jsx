@@ -99,9 +99,13 @@ const Editor = () => {
   // Text formatting functions
   const formatText = (format) => {
     const textarea = document.getElementById(`page-content-${currentPage}`)
+    if (!textarea) return
+    
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const selectedText = textarea.value.substring(start, end)
+    
+    if (!selectedText) return // Don't format if nothing is selected
     
     let formattedText = ''
     switch (format) {
@@ -124,6 +128,12 @@ const Editor = () => {
       textarea.value.substring(end)
     
     updatePageContent(currentPage, newContent)
+    
+    // Restore cursor position after the formatted text
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start, start + formattedText.length)
+    }, 0)
   }
 
   const getThemeStyles = (theme) => {

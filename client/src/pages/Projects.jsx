@@ -251,10 +251,22 @@ const InlinePostEditor = ({ post, onClose }) => {
   const [editablePost, setEditablePost] = useState(post)
   const [currentPage, setCurrentPage] = useState(0)
   const [fontSize, setFontSize] = useState(16)
+  const [fontFamily, setFontFamily] = useState('Canva Sans')
   const [textAlign, setTextAlign] = useState('center')
   const [history, setHistory] = useState([post])
   const [historyIndex, setHistoryIndex] = useState(0)
   const [isAutoSaving, setIsAutoSaving] = useState(false)
+
+  // Update editor when post prop changes (for post switching)
+  useEffect(() => {
+    setEditablePost(post)
+    setCurrentPage(0) // Reset to first page
+    setHistory([post]) // Reset history
+    setHistoryIndex(0)
+    setFontSize(16) // Reset font size
+    setFontFamily('Canva Sans') // Reset font
+    setTextAlign('center') // Reset alignment
+  }, [post._id]) // Only trigger when the post ID changes
 
   // Auto-save functionality
   const autoSave = async (postData) => {
@@ -294,51 +306,46 @@ const InlinePostEditor = ({ post, onClose }) => {
     updatePost({ pages: updatedPages })
   }
 
-  const formatText = (format) => {
-    const selection = window.getSelection()
-    if (selection.rangeCount === 0) return
+  const formatText = (format, savedSelection = null) => {
+    const editableDiv = document.getElementById(`editable-content-${currentPage}`)
+    if (!editableDiv) return
     
-    const range = selection.getRangeAt(0)
-    const selectedText = range.toString()
+    // Focus the element first
+    editableDiv.focus()
     
-    if (!selectedText) return
+    // If we have a saved selection, restore it
+    if (savedSelection) {
+      const selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(savedSelection)
+    }
     
-    let formattedElement
+    // Use browser's built-in execCommand for reliable formatting
+    let command
     switch (format) {
       case 'bold':
-        formattedElement = document.createElement('strong')
+        command = 'bold'
         break
       case 'italic':
-        formattedElement = document.createElement('em')
+        command = 'italic'
         break
       case 'underline':
-        formattedElement = document.createElement('u')
+        command = 'underline'
         break
       default:
         return
     }
     
-    try {
-      range.surroundContents(formattedElement)
-      
-      // Update the content in state
-      const editableDiv = document.getElementById(`editable-content-${currentPage}`)
-      if (editableDiv) {
-        updatePageContent(currentPage, editableDiv.innerHTML)
-      }
-    } catch (e) {
-      // Fallback for complex selections
-      const fragment = range.extractContents()
-      formattedElement.appendChild(fragment)
-      range.insertNode(formattedElement)
-      
-      const editableDiv = document.getElementById(`editable-content-${currentPage}`)
-      if (editableDiv) {
-        updatePageContent(currentPage, editableDiv.innerHTML)
-      }
-    }
+    // Execute the command
+    const success = document.execCommand(command, false, null)
+    console.log(`execCommand(${command}) result:`, success)
     
-    selection.removeAllRanges()
+    // Update the content in state after a brief delay
+    setTimeout(() => {
+      if (editableDiv) {
+        updatePageContent(currentPage, editableDiv.innerHTML)
+      }
+    }, 50)
   }
 
   const undo = () => {
@@ -371,11 +378,12 @@ const InlinePostEditor = ({ post, onClose }) => {
           <div className="flex items-center space-x-3">
             <select 
               className="px-3 py-1 border border-gray-300 rounded text-sm bg-white min-w-[120px]"
-              value="Canva Sans"
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value)}
             >
-              <option>Canva Sans</option>
-              <option>Arial</option>
-              <option>Times</option>
+              <option value="Canva Sans">Canva Sans</option>
+              <option value="Arial">Arial</option>
+              <option value="Times New Roman">Times New Roman</option>
             </select>
             
             <div className="flex items-center border border-gray-300 rounded bg-white">
@@ -397,14 +405,28 @@ const InlinePostEditor = ({ post, onClose }) => {
             <div className="flex items-center space-x-1">
               <button className="w-7 h-7 rounded bg-red-500 border border-gray-300"></button>
               <button 
-                onClick={() => formatText('bold')}
+                onMouseDown={(e) => {
+                  e.preventDefault() // Prevent focus loss
+                  // Save current selection at the moment of button press
+                  const selection = window.getSelection()
+                  const savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null
+                  // Apply formatting with the saved selection
+                  setTimeout(() => formatText('bold', savedRange), 10)
+                }}
                 className="w-8 h-8 font-bold text-sm hover:bg-gray-200 rounded flex items-center justify-center"
                 title="Bold"
               >
                 B
               </button>
               <button 
-                onClick={() => formatText('italic')}
+                onMouseDown={(e) => {
+                  e.preventDefault() // Prevent focus loss
+                  // Save current selection at the moment of button press
+                  const selection = window.getSelection()
+                  const savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null
+                  // Apply formatting with the saved selection
+                  setTimeout(() => formatText('italic', savedRange), 10)
+                }}
                 className="w-8 h-8 italic text-sm hover:bg-gray-200 rounded flex items-center justify-center"
                 title="Italic"
               >
@@ -533,6 +555,7 @@ const InlinePostEditor = ({ post, onClose }) => {
                   className="text-lg font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded px-2 py-1"
                   style={{ 
                     fontSize: `${Math.max(16, fontSize)}px`,
+                    fontFamily: fontFamily === 'Canva Sans' ? 'system-ui, -apple-system, sans-serif' : fontFamily,
                     textAlign,
                     minHeight: '1.5em'
                   }}
@@ -548,6 +571,7 @@ const InlinePostEditor = ({ post, onClose }) => {
                   className="text-sm leading-relaxed outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded px-2 py-1"
                   style={{ 
                     fontSize: `${fontSize}px`,
+                    fontFamily: fontFamily === 'Canva Sans' ? 'system-ui, -apple-system, sans-serif' : fontFamily,
                     textAlign,
                     minHeight: '4em'
                   }}
