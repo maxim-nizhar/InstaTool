@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Projects = () => {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [showAllPosts, setShowAllPosts] = useState({})
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchProjects()
@@ -44,6 +47,21 @@ const Projects = () => {
       modern: 'bg-gray-100 text-gray-800'
     }
     return colors[theme] || 'bg-gray-100 text-gray-800'
+  }
+
+  const handlePostClick = (post) => {
+    setSelectedPost(post)
+  }
+
+  const handleEditPost = (post) => {
+    navigate(`/editor/${post._id}`)
+  }
+
+  const toggleShowAllPosts = (projectId) => {
+    setShowAllPosts(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }))
   }
 
   if (loading) {
@@ -137,8 +155,12 @@ const Projects = () => {
               <div className="p-6">
                 <h4 className="text-sm font-medium text-gray-900 mb-3">Recent Posts:</h4>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {project.posts.slice(0, 5).map((post) => (
-                    <div key={post._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {project.posts.slice(0, showAllPosts[project._id] ? project.posts.length : 5).map((post) => (
+                    <div 
+                      key={post._id} 
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                      onClick={() => handlePostClick(post)}
+                    >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {post.post_title}
@@ -155,12 +177,35 @@ const Projects = () => {
                           </span>
                         </div>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditPost(post)
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <span className="text-gray-400">→</span>
+                      </div>
                     </div>
                   ))}
-                  {project.posts.length > 5 && (
-                    <p className="text-sm text-gray-500 text-center py-2">
+                  {project.posts.length > 5 && !showAllPosts[project._id] && (
+                    <button 
+                      className="w-full text-sm text-blue-600 text-center py-2 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      onClick={() => toggleShowAllPosts(project._id)}
+                    >
                       + {project.posts.length - 5} more posts
-                    </p>
+                    </button>
+                  )}
+                  {showAllPosts[project._id] && project.posts.length > 5 && (
+                    <button 
+                      className="w-full text-sm text-gray-500 text-center py-2 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      onClick={() => toggleShowAllPosts(project._id)}
+                    >
+                      Show less
+                    </button>
                   )}
                 </div>
               </div>
@@ -185,6 +230,159 @@ const Projects = () => {
           ))}
         </div>
       )}
+
+      {/* Instagram Post Preview Modal */}
+      {selectedPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
+            <PostPreview post={selectedPost} onClose={() => setSelectedPost(null)} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Instagram Post Preview Component
+const PostPreview = ({ post, onClose }) => {
+  const [currentPage, setCurrentPage] = useState(0)
+
+  const getThemeStyles = (theme) => {
+    const themes = {
+      gold: {
+        background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+        textColor: 'text-white',
+        accentColor: '#8B4513'
+      },
+      blue: {
+        background: 'linear-gradient(135deg, #4A90E2, #7B68EE)',
+        textColor: 'text-white',
+        accentColor: '#2E5266'
+      },
+      geometric: {
+        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+        textColor: 'text-white',
+        accentColor: '#4A148C'
+      },
+      calligraphy: {
+        background: 'linear-gradient(135deg, #2E7D32, #4CAF50)',
+        textColor: 'text-white',
+        accentColor: '#1B5E20'
+      },
+      modern: {
+        background: 'linear-gradient(135deg, #263238, #37474F)',
+        textColor: 'text-white',
+        accentColor: '#455A64'
+      }
+    }
+    return themes[theme] || themes.modern
+  }
+
+  const themeStyles = getThemeStyles(post.theme)
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+          <div>
+            <p className="font-semibold text-sm">islamic_quotes_daily</p>
+            <p className="text-xs text-gray-500">Original Audio</p>
+          </div>
+        </div>
+        <button 
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Post Content */}
+      <div className="flex-1 relative">
+        <div 
+          className="w-full h-96 flex items-center justify-center p-6 text-center relative"
+          style={{ background: themeStyles.background }}
+        >
+          <div className={`${themeStyles.textColor} max-w-full`}>
+            <h3 className="text-lg font-bold mb-4">{post.post_title}</h3>
+            <div className="text-sm leading-relaxed">
+              {post.pages[currentPage]?.content || 'No content'}
+            </div>
+          </div>
+          
+          {/* Page indicators */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+            {post.pages.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentPage ? 'bg-white' : 'bg-white bg-opacity-50'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Navigation arrows */}
+        {post.pages.length > 1 && (
+          <>
+            {currentPage > 0 && (
+              <button
+                onClick={() => setCurrentPage(prev => prev - 1)}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70"
+              >
+                ←
+              </button>
+            )}
+            {currentPage < post.pages.length - 1 && (
+              <button
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70"
+              >
+                →
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex space-x-4">
+            <span className="text-xl">♥️</span>
+            <span className="text-xl">💬</span>
+            <span className="text-xl">📤</span>
+          </div>
+          <span className="text-xl">🔖</span>
+        </div>
+        <div className="text-sm">
+          <p className="font-semibold mb-1">1,234 likes</p>
+          <p className="text-gray-600">
+            <span className="font-semibold">islamic_quotes_daily</span> {post.post_title}
+          </p>
+          <p className="text-gray-500 text-xs mt-2">
+            Scheduled for {new Date(post.scheduled_for).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="mt-4 flex space-x-2">
+          <button 
+            onClick={() => {
+              onClose()
+              // Navigate to editor
+              window.location.href = `/editor/${post._id}`
+            }}
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700"
+          >
+            Edit Post
+          </button>
+          <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Share
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

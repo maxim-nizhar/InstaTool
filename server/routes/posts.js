@@ -49,6 +49,52 @@ router.get('/project/:id', async (req, res) => {
   }
 });
 
+// GET /api/posts/:id - Get individual post
+router.get('/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id).populate('project_id');
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    res.json({ 
+      message: 'Post retrieved successfully',
+      post: post
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/posts/:id - Update individual post
+router.put('/:id', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const updates = req.body;
+    
+    // Remove any fields that shouldn't be updated
+    delete updates._id;
+    delete updates.__v;
+    
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId, 
+      updates, 
+      { new: true, runValidators: true }
+    ).populate('project_id');
+    
+    if (!updatedPost) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    res.json({ 
+      message: 'Post updated successfully',
+      post: updatedPost
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // DELETE /api/posts/cleanup - Clean up duplicate projects (dev only)
 router.delete('/cleanup', async (req, res) => {
   try {
