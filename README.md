@@ -82,7 +82,7 @@ post_title,theme,scheduled_for,font,page_1_content,page_2_content,page_3_content
 - **Backend**: Node.js + Express + MongoDB Atlas  
 - **Database**: MongoDB Atlas (production-ready)
 - **Styling**: Tailwind CSS with Islamic color palette
-- **Architecture**: Modern MERN stack with Context API
+
 
 ## 📊 Current Status
 
