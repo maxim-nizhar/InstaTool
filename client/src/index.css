@@ -56,4 +56,12 @@
   .bg-islamic-cream {
     @apply bg-amber-50;
   }
+  
+  /* Line clamp utility */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
