@@ -399,12 +399,12 @@ const InlinePostEditor = ({ post, onClose }) => {
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Sleek Top Toolbar */}
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="border-b border-gray-200 bg-white px-4 py-3 overflow-x-auto">
+        <div className="flex items-center justify-between min-w-[800px]">
           {/* Left: Font & Format Controls */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <select
-              className="px-3 py-1 border border-gray-300 rounded text-sm bg-white min-w-[120px]"
+              className="px-2 py-1 border border-gray-300 rounded text-sm bg-white min-w-[100px]"
               value={fontFamily}
               onChange={(e) => setFontFamily(e.target.value)}
             >
@@ -470,7 +470,7 @@ const InlinePostEditor = ({ post, onClose }) => {
             </div>
 
             {/* Text Alignment */}
-            <div className="flex items-center space-x-1 border-l border-gray-300 pl-3">
+            <div className="flex items-center space-x-1 border-l border-gray-300 pl-2">
               <button
                 onClick={() => setTextAlign("left")}
                 className={`w-8 h-8 rounded flex items-center justify-center ${
@@ -504,7 +504,7 @@ const InlinePostEditor = ({ post, onClose }) => {
             <select
               value={editablePost.theme}
               onChange={(e) => updatePost({ theme: e.target.value })}
-              className="px-3 py-1 border border-gray-300 rounded text-sm bg-white min-w-[100px]"
+              className="px-2 py-1 border border-gray-300 rounded text-sm bg-white min-w-[90px]"
             >
               <option value="gold">Gold</option>
               <option value="blue">Blue</option>
@@ -552,27 +552,6 @@ const InlinePostEditor = ({ post, onClose }) => {
             >
               ↷
             </button>
-
-            {/* Scheduling Controls */}
-            <div className="flex items-center space-x-2 border-l border-gray-300 pl-3">
-              <button
-                onClick={() => {
-                  // TODO: Publish immediately
-                  console.log("Publishing now...");
-                }}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                title="Publish Now"
-              >
-                Publish Now
-              </button>
-              <button
-                onClick={() => setShowScheduleModal(true)}
-                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                title="Schedule Post"
-              >
-                📅 Schedule
-              </button>
-            </div>
 
             {isAutoSaving && (
               <span className="text-xs text-gray-500">Saving...</span>
@@ -728,6 +707,27 @@ const InlinePostEditor = ({ post, onClose }) => {
                 <span className="font-semibold">islamic_quotes_daily</span>{" "}
                 {editablePost.post_title}
               </p>
+            </div>
+
+            {/* Scheduling Controls - Moved to bottom */}
+            <div className="flex items-center space-x-3 mt-4 pt-4 border-t border-gray-100">
+              <button
+                onClick={() => {
+                  // TODO: Publish immediately
+                  console.log("Publishing now...");
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                title="Publish Now"
+              >
+                Publish Now
+              </button>
+              <button
+                onClick={() => setShowScheduleModal(true)}
+                className="flex-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium"
+                title="Schedule Post"
+              >
+                📅 Schedule
+              </button>
             </div>
           </div>
         </div>
