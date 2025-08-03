@@ -13,41 +13,17 @@ const ScheduledPosts = () => {
 
   const fetchScheduledPosts = async () => {
     try {
-      // Mock data for now - TODO: Replace with actual API call
-      const mockData = [
-        {
-          _id: "1",
-          post_title: "Patience is the companion of wisdom",
-          theme: "gold",
-          pages: [
-            {
-              content:
-                "Patience is the companion of wisdom. It brings inner peace and understanding.",
-            },
-          ],
-          scheduled_for: "2024-12-25T10:30:00",
-          status: "scheduled",
-          created_at: "2024-12-20T08:00:00",
-        },
-        {
-          _id: "2",
-          post_title: "Trust in Allah's timing",
-          theme: "blue",
-          pages: [
-            {
-              content:
-                "Trust in Allah's timing. Everything happens for a reason.",
-            },
-          ],
-          scheduled_for: "2024-12-26T15:45:30",
-          status: "scheduled",
-          created_at: "2024-12-20T09:15:00",
-        },
-      ];
+      // Fetch real scheduled posts from backend API
+      const response = await fetch("/api/posts/scheduled");
+      if (!response.ok) {
+        throw new Error("Failed to fetch scheduled posts");
+      }
 
-      setScheduledPosts(mockData);
+      const data = await response.json();
+      setScheduledPosts(data.posts || []);
     } catch (err) {
       setError("Failed to fetch scheduled posts: " + err.message);
+      console.error("Fetch scheduled posts error:", err);
     } finally {
       setLoading(false);
     }
@@ -98,35 +74,40 @@ const ScheduledPosts = () => {
     }
 
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await fetch(`/api/posts/scheduled/${postId}`, {
-      //   method: 'DELETE'
-      // });
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete scheduled post');
-      // }
+      // Call real backend API to delete scheduled post
+      const response = await fetch(`/api/posts/scheduled/${postId}`, {
+        method: "DELETE",
+      });
 
-      // For now, just remove from local state
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete scheduled post");
+      }
+
+      // Remove from local state after successful API call
       setScheduledPosts((posts) => posts.filter((post) => post._id !== postId));
-      alert("Scheduled post deleted successfully!");
+      alert("Scheduled post cancelled successfully!");
     } catch (err) {
       alert("Failed to delete scheduled post: " + err.message);
+      console.error("Delete scheduled post error:", err);
     }
   };
 
   const handleUpdateSchedule = async (postId, newDateTime) => {
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await fetch(`/api/posts/scheduled/${postId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ scheduled_for: newDateTime })
-      // });
-      // if (!response.ok) {
-      //   throw new Error('Failed to update schedule');
-      // }
+      // Call real backend API to update schedule
+      const response = await fetch(`/api/posts/scheduled/${postId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduled_for: newDateTime }),
+      });
 
-      // For now, update local state
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update schedule");
+      }
+
+      // Update local state after successful API call
       setScheduledPosts((posts) =>
         posts.map((post) =>
           post._id === postId ? { ...post, scheduled_for: newDateTime } : post
@@ -136,6 +117,7 @@ const ScheduledPosts = () => {
       alert("Schedule updated successfully!");
     } catch (err) {
       alert("Failed to update schedule: " + err.message);
+      console.error("Update schedule error:", err);
     }
   };
 
