@@ -1,60 +1,64 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const PostSchema = new mongoose.Schema({
   post_title: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   theme: {
     type: String,
     required: true,
-    enum: ['gold', 'blue', 'geometric', 'calligraphy', 'modern'],
-    default: 'gold'
+    enum: ["gold", "blue", "geometric", "calligraphy", "modern"],
+    default: "gold",
   },
   scheduled_for: {
     type: Date,
-    required: true
+    required: true,
   },
   font: {
     type: String,
-    default: 'default'
+    default: "default",
   },
-  pages: [{
-    page_number: {
-      type: Number,
-      required: true
+  pages: [
+    {
+      page_number: {
+        type: Number,
+        required: true,
+      },
+      content: {
+        type: String,
+        required: true,
+      },
     },
-    content: {
-      type: String,
-      required: true
-    }
-  }],
+  ],
   project_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project'
+    ref: "Project",
   },
   status: {
     type: String,
-    enum: ['draft', 'scheduled', 'published', 'failed'],
-    default: 'scheduled'
+    enum: ["draft", "scheduled", "published", "failed"],
+    default: "scheduled",
   },
-  image_urls: [{
-    page_number: Number,
-    url: String
-  }],
+  image_urls: [
+    {
+      page_number: Number,
+      url: String,
+    },
+  ],
   created_at: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updated_at: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Pre-save middleware to update the updated_at field
-PostSchema.pre('save', function(next) {
+PostSchema.pre("save", function (next) {
   this.updated_at = Date.now();
   next();
 });
@@ -63,5 +67,4 @@ PostSchema.pre('save', function(next) {
 PostSchema.index({ scheduled_for: 1 });
 PostSchema.index({ project_id: 1 });
 PostSchema.index({ status: 1 });
-
-module.exports = mongoose.model('Post', PostSchema);
+module.exports = mongoose.model("Post", PostSchema);

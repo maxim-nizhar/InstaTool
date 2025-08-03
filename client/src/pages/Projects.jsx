@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useEditing } from "../App";
+import ScheduleModal from "../components/ScheduleModal";
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -279,6 +280,7 @@ const InlinePostEditor = ({ post, onClose }) => {
   const [history, setHistory] = useState([post]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   // Update editor when post prop changes (for post switching)
   useEffect(() => {
@@ -551,6 +553,27 @@ const InlinePostEditor = ({ post, onClose }) => {
               ↷
             </button>
 
+            {/* Scheduling Controls */}
+            <div className="flex items-center space-x-2 border-l border-gray-300 pl-3">
+              <button
+                onClick={() => {
+                  // TODO: Publish immediately
+                  console.log("Publishing now...");
+                }}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                title="Publish Now"
+              >
+                Publish Now
+              </button>
+              <button
+                onClick={() => setShowScheduleModal(true)}
+                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                title="Schedule Post"
+              >
+                📅 Schedule
+              </button>
+            </div>
+
             {isAutoSaving && (
               <span className="text-xs text-gray-500">Saving...</span>
             )}
@@ -709,6 +732,51 @@ const InlinePostEditor = ({ post, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <ScheduleModal
+          post={editablePost}
+          onClose={() => setShowScheduleModal(false)}
+          onSchedule={async (scheduledDateTime) => {
+            try {
+              // Save the scheduled post
+              const response = await fetch(
+                `/api/posts/${editablePost._id}/schedule`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    scheduled_for: scheduledDateTime,
+                    status: "scheduled",
+                  }),
+                }
+              );
+
+              if (response.ok) {
+                alert("Post scheduled successfully!");
+                // Update the post status in local state
+                updatePost({
+                  scheduled_for: scheduledDateTime,
+                  status: "scheduled",
+                });
+              } else {
+                const errorData = await response.json();
+                alert(
+                  "Failed to schedule post: " +
+                    (errorData.error || "Unknown error")
+                );
+              }
+            } catch (error) {
+              console.error("Scheduling error:", error);
+              alert("Failed to schedule post: " + error.message);
+            }
+            setShowScheduleModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };
