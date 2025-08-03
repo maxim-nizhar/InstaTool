@@ -1,151 +1,169 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 const Editor = () => {
-  const { postId } = useParams()
-  const navigate = useNavigate()
-  const [post, setPost] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [history, setHistory] = useState([])
-  const [historyIndex, setHistoryIndex] = useState(-1)
-  const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const { postId } = useParams();
+  const navigate = useNavigate();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
 
   // Load post data
   useEffect(() => {
     if (postId) {
-      fetchPost()
+      fetchPost();
     }
-  }, [postId])
+  }, [postId]);
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`/api/posts/${postId}`)
+      const response = await fetch(`/api/posts/${postId}`);
       if (response.ok) {
-        const data = await response.json()
-        setPost(data.post)
-        setHistory([data.post])
-        setHistoryIndex(0)
+        const data = await response.json();
+        setPost(data.post);
+        setHistory([data.post]);
+        setHistoryIndex(0);
       } else {
-        console.error('Failed to fetch post')
+        console.error("Failed to fetch post");
       }
     } catch (error) {
-      console.error('Error fetching post:', error)
+      console.error("Error fetching post:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Auto-save functionality
-  const autoSave = useCallback(async (postData) => {
-    setIsAutoSaving(true)
-    try {
-      await fetch(`/api/posts/${postId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
-      })
-    } catch (error) {
-      console.error('Auto-save failed:', error)
-    } finally {
-      setIsAutoSaving(false)
-    }
-  }, [postId])
+  const autoSave = useCallback(
+    async (postData) => {
+      setIsAutoSaving(true);
+      try {
+        await fetch(`/api/posts/${postId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(postData),
+        });
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [postId]
+  );
 
   // Add to history for undo/redo
   const addToHistory = (newPost) => {
-    const newHistory = history.slice(0, historyIndex + 1)
-    newHistory.push(newPost)
-    setHistory(newHistory)
-    setHistoryIndex(newHistory.length - 1)
-    
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newPost);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+
     // Auto-save after 1 second delay
-    setTimeout(() => autoSave(newPost), 1000)
-  }
+    setTimeout(() => autoSave(newPost), 1000);
+  };
 
   // Update post data
   const updatePost = (updates) => {
-    const updatedPost = { ...post, ...updates }
-    setPost(updatedPost)
-    addToHistory(updatedPost)
-  }
+    const updatedPost = { ...post, ...updates };
+    setPost(updatedPost);
+    addToHistory(updatedPost);
+  };
 
   // Update specific page content
   const updatePageContent = (pageIndex, content) => {
-    const updatedPages = [...post.pages]
-    updatedPages[pageIndex] = { ...updatedPages[pageIndex], content }
-    updatePost({ pages: updatedPages })
-  }
+    const updatedPages = [...post.pages];
+    updatedPages[pageIndex] = { ...updatedPages[pageIndex], content };
+    updatePost({ pages: updatedPages });
+  };
 
   // Undo/Redo functions
   const undo = () => {
     if (historyIndex > 0) {
-      const newIndex = historyIndex - 1
-      setHistoryIndex(newIndex)
-      setPost(history[newIndex])
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setPost(history[newIndex]);
     }
-  }
+  };
 
   const redo = () => {
     if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1
-      setHistoryIndex(newIndex)
-      setPost(history[newIndex])
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setPost(history[newIndex]);
     }
-  }
+  };
 
   // Text formatting functions
   const formatText = (format) => {
-    const textarea = document.getElementById(`page-content-${currentPage}`)
-    if (!textarea) return
-    
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
-    
-    if (!selectedText) return // Don't format if nothing is selected
-    
-    let formattedText = ''
+    const textarea = document.getElementById(`page-content-${currentPage}`);
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+
+    if (!selectedText) return; // Don't format if nothing is selected
+
+    let formattedText = "";
     switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText}**`
-        break
-      case 'italic':
-        formattedText = `*${selectedText}*`
-        break
-      case 'underline':
-        formattedText = `<u>${selectedText}</u>`
-        break
+      case "bold":
+        formattedText = `**${selectedText}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText}*`;
+        break;
+      case "underline":
+        formattedText = `<u>${selectedText}</u>`;
+        break;
       default:
-        formattedText = selectedText
+        formattedText = selectedText;
     }
-    
-    const newContent = 
-      textarea.value.substring(0, start) + 
-      formattedText + 
-      textarea.value.substring(end)
-    
-    updatePageContent(currentPage, newContent)
-    
+
+    const newContent =
+      textarea.value.substring(0, start) +
+      formattedText +
+      textarea.value.substring(end);
+
+    updatePageContent(currentPage, newContent);
+
     // Restore cursor position after the formatted text
     setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start, start + formattedText.length)
-    }, 0)
-  }
+      textarea.focus();
+      textarea.setSelectionRange(start, start + formattedText.length);
+    }, 0);
+  };
 
   const getThemeStyles = (theme) => {
     const themes = {
-      gold: { background: 'linear-gradient(135deg, #FFD700, #FFA500)', textColor: 'text-white' },
-      blue: { background: 'linear-gradient(135deg, #4A90E2, #7B68EE)', textColor: 'text-white' },
-      geometric: { background: 'linear-gradient(135deg, #667eea, #764ba2)', textColor: 'text-white' },
-      calligraphy: { background: 'linear-gradient(135deg, #2E7D32, #4CAF50)', textColor: 'text-white' },
-      modern: { background: 'linear-gradient(135deg, #263238, #37474F)', textColor: 'text-white' }
-    }
-    return themes[theme] || themes.modern
-  }
+      gold: {
+        background: "linear-gradient(135deg, #FFD700, #FFA500)",
+        textColor: "text-white",
+      },
+      blue: {
+        background: "linear-gradient(135deg, #4A90E2, #7B68EE)",
+        textColor: "text-white",
+      },
+      geometric: {
+        background: "linear-gradient(135deg, #667eea, #764ba2)",
+        textColor: "text-white",
+      },
+      calligraphy: {
+        background: "linear-gradient(135deg, #2E7D32, #4CAF50)",
+        textColor: "text-white",
+      },
+      modern: {
+        background: "linear-gradient(135deg, #263238, #37474F)",
+        textColor: "text-white",
+      },
+    };
+    return themes[theme] || themes.modern;
+  };
 
   if (loading) {
     return (
@@ -155,7 +173,7 @@ const Editor = () => {
           <p className="mt-4 text-gray-600">Loading post...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!post) {
@@ -163,18 +181,18 @@ const Editor = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center py-12">
           <p className="text-red-600">Post not found</p>
-          <button 
-            onClick={() => navigate('/projects')}
+          <button
+            onClick={() => navigate("/projects")}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Back to Projects
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  const themeStyles = getThemeStyles(post.theme)
+  const themeStyles = getThemeStyles(post.theme);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -184,20 +202,22 @@ const Editor = () => {
           <div className="flex items-center justify-between h-16">
             {/* Left: Navigation */}
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => navigate('/projects')}
+              <button
+                onClick={() => navigate("/projects")}
                 className="text-gray-600 hover:text-gray-900"
               >
                 ← Back
               </button>
               <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-lg font-semibold truncate max-w-64">{post.post_title}</h1>
+              <h1 className="text-lg font-semibold truncate max-w-64">
+                {post.post_title}
+              </h1>
             </div>
 
             {/* Center: Tools */}
             <div className="flex items-center space-x-2">
               {/* Undo/Redo */}
-              <button 
+              <button
                 onClick={undo}
                 disabled={historyIndex <= 0}
                 className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -205,7 +225,7 @@ const Editor = () => {
               >
                 ↶
               </button>
-              <button 
+              <button
                 onClick={redo}
                 disabled={historyIndex >= history.length - 1}
                 className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -213,26 +233,26 @@ const Editor = () => {
               >
                 ↷
               </button>
-              
+
               <div className="h-6 w-px bg-gray-300"></div>
-              
+
               {/* Text Formatting */}
-              <button 
-                onClick={() => formatText('bold')}
+              <button
+                onClick={() => formatText("bold")}
                 className="p-2 text-gray-600 hover:text-gray-900 font-bold"
                 title="Bold"
               >
                 B
               </button>
-              <button 
-                onClick={() => formatText('italic')}
+              <button
+                onClick={() => formatText("italic")}
                 className="p-2 text-gray-600 hover:text-gray-900 italic"
                 title="Italic"
               >
                 I
               </button>
-              <button 
-                onClick={() => formatText('underline')}
+              <button
+                onClick={() => formatText("underline")}
                 className="p-2 text-gray-600 hover:text-gray-900 underline"
                 title="Underline"
               >
@@ -242,7 +262,7 @@ const Editor = () => {
               <div className="h-6 w-px bg-gray-300"></div>
 
               {/* Theme Selector */}
-              <select 
+              <select
                 value={post.theme}
                 onChange={(e) => updatePost({ theme: e.target.value })}
                 className="px-3 py-1 border border-gray-300 rounded text-sm"
@@ -297,8 +317,8 @@ const Editor = () => {
                         onClick={() => setCurrentPage(index)}
                         className={`w-8 h-8 rounded text-xs font-medium transition-colors ${
                           index === currentPage
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
                       >
                         {index + 1}
@@ -315,8 +335,10 @@ const Editor = () => {
                 </label>
                 <textarea
                   id={`page-content-${currentPage}`}
-                  value={post.pages[currentPage]?.content || ''}
-                  onChange={(e) => updatePageContent(currentPage, e.target.value)}
+                  value={post.pages[currentPage]?.content || ""}
+                  onChange={(e) =>
+                    updatePageContent(currentPage, e.target.value)
+                  }
                   className="w-full h-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   placeholder="Enter your content here..."
                 />
@@ -330,8 +352,16 @@ const Editor = () => {
                   </label>
                   <input
                     type="datetime-local"
-                    value={post.scheduled_for ? new Date(post.scheduled_for).toISOString().slice(0, 16) : ''}
-                    onChange={(e) => updatePost({ scheduled_for: e.target.value })}
+                    value={
+                      post.scheduled_for
+                        ? new Date(post.scheduled_for)
+                            .toISOString()
+                            .slice(0, 16)
+                        : ""
+                    }
+                    onChange={(e) =>
+                      updatePost({ scheduled_for: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -339,7 +369,7 @@ const Editor = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Font
                   </label>
-                  <select 
+                  <select
                     value={post.font}
                     onChange={(e) => updatePost({ font: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -362,31 +392,37 @@ const Editor = () => {
                 <div className="flex items-center space-x-3 p-3 border-b border-gray-200">
                   <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
                   <div>
-                    <p className="font-semibold text-sm">islamic_quotes_daily</p>
+                    <p className="font-semibold text-sm">
+                      islamic_quotes_daily
+                    </p>
                     <p className="text-xs text-gray-500">Original Audio</p>
                   </div>
                 </div>
 
                 {/* Post Content */}
                 <div className="relative">
-                  <div 
+                  <div
                     className="w-full h-80 flex items-center justify-center p-6 text-center relative"
                     style={{ background: themeStyles.background }}
                   >
                     <div className={`${themeStyles.textColor} max-w-full`}>
-                      <h3 className="text-lg font-bold mb-4">{post.post_title}</h3>
+                      <h3 className="text-lg font-bold mb-4">
+                        {post.post_title}
+                      </h3>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {post.pages[currentPage]?.content || 'No content'}
+                        {post.pages[currentPage]?.content || "No content"}
                       </div>
                     </div>
-                    
+
                     {/* Page indicators */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                       {post.pages.map((_, index) => (
                         <div
                           key={index}
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            index === currentPage ? 'bg-white' : 'bg-white bg-opacity-50'
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ease-in-out ${
+                            index === currentPage
+                              ? "bg-white scale-150 shadow-lg"
+                              : "bg-white bg-opacity-50"
                           }`}
                         />
                       ))}
@@ -398,7 +434,7 @@ const Editor = () => {
                     <>
                       {currentPage > 0 && (
                         <button
-                          onClick={() => setCurrentPage(prev => prev - 1)}
+                          onClick={() => setCurrentPage((prev) => prev - 1)}
                           className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70"
                         >
                           ←
@@ -406,7 +442,7 @@ const Editor = () => {
                       )}
                       {currentPage < post.pages.length - 1 && (
                         <button
-                          onClick={() => setCurrentPage(prev => prev + 1)}
+                          onClick={() => setCurrentPage((prev) => prev + 1)}
                           className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70"
                         >
                           →
@@ -429,7 +465,10 @@ const Editor = () => {
                   <div className="text-sm">
                     <p className="font-semibold mb-1">1,234 likes</p>
                     <p className="text-gray-600">
-                      <span className="font-semibold">islamic_quotes_daily</span> {post.post_title}
+                      <span className="font-semibold">
+                        islamic_quotes_daily
+                      </span>{" "}
+                      {post.post_title}
                     </p>
                   </div>
                 </div>
@@ -439,7 +478,7 @@ const Editor = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Editor
+export default Editor;

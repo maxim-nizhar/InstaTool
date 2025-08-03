@@ -1,87 +1,87 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useEditing } from '../App'
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEditing } from "../App";
 
 const Projects = () => {
-  const [projects, setProjects] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [selectedPost, setSelectedPost] = useState(null)
-  const [showAllPosts, setShowAllPosts] = useState({})
-  const navigate = useNavigate()
-  const { setIsEditingMode } = useEditing()
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showAllPosts, setShowAllPosts] = useState({});
+  const navigate = useNavigate();
+  const { setIsEditingMode } = useEditing();
 
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, []);
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/posts/projects')
-      const data = await response.json()
-      
+      const response = await fetch("/api/posts/projects");
+      const data = await response.json();
+
       if (response.ok) {
-        setProjects(data.projects)
+        setProjects(data.projects);
       } else {
-        setError(data.error || 'Failed to fetch projects')
+        setError(data.error || "Failed to fetch projects");
       }
     } catch (err) {
-      setError('Network error: ' + err.message)
+      setError("Network error: " + err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   const getThemeColor = (theme) => {
     const colors = {
-      gold: 'bg-yellow-100 text-yellow-800',
-      blue: 'bg-blue-100 text-blue-800',
-      geometric: 'bg-purple-100 text-purple-800',
-      calligraphy: 'bg-green-100 text-green-800',
-      modern: 'bg-gray-100 text-gray-800'
-    }
-    return colors[theme] || 'bg-gray-100 text-gray-800'
-  }
+      gold: "bg-yellow-100 text-yellow-800",
+      blue: "bg-blue-100 text-blue-800",
+      geometric: "bg-purple-100 text-purple-800",
+      calligraphy: "bg-green-100 text-green-800",
+      modern: "bg-gray-100 text-gray-800",
+    };
+    return colors[theme] || "bg-gray-100 text-gray-800";
+  };
 
   const getThemeGradient = (theme) => {
     const gradients = {
-      gold: 'linear-gradient(135deg, #FFD700, #FFA500)',
-      blue: 'linear-gradient(135deg, #4A90E2, #7B68EE)',
-      geometric: 'linear-gradient(135deg, #667eea, #764ba2)',
-      calligraphy: 'linear-gradient(135deg, #2E7D32, #4CAF50)',
-      modern: 'linear-gradient(135deg, #263238, #37474F)'
-    }
-    return gradients[theme] || gradients.modern
-  }
+      gold: "linear-gradient(135deg, #FFD700, #FFA500)",
+      blue: "linear-gradient(135deg, #4A90E2, #7B68EE)",
+      geometric: "linear-gradient(135deg, #667eea, #764ba2)",
+      calligraphy: "linear-gradient(135deg, #2E7D32, #4CAF50)",
+      modern: "linear-gradient(135deg, #263238, #37474F)",
+    };
+    return gradients[theme] || gradients.modern;
+  };
 
   const handlePostClick = (post) => {
-    setSelectedPost(post)
-    setIsEditingMode(true)
-  }
+    setSelectedPost(post);
+    setIsEditingMode(true);
+  };
 
   const handleCloseEditor = () => {
-    setSelectedPost(null)
-    setIsEditingMode(false)
-  }
+    setSelectedPost(null);
+    setIsEditingMode(false);
+  };
 
   const handleEditPost = (post) => {
-    navigate(`/editor/${post._id}`)
-  }
+    navigate(`/editor/${post._id}`);
+  };
 
   const toggleShowAllPosts = (projectId) => {
-    setShowAllPosts(prev => ({
+    setShowAllPosts((prev) => ({
       ...prev,
-      [projectId]: !prev[projectId]
-    }))
-  }
+      [projectId]: !prev[projectId],
+    }));
+  };
 
   if (loading) {
     return (
@@ -95,7 +95,7 @@ const Projects = () => {
           <p className="mt-4 text-gray-600">Loading projects...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -107,7 +107,7 @@ const Projects = () => {
         </div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
           <p className="text-red-800">Error: {error}</p>
-          <button 
+          <button
             onClick={fetchProjects}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
@@ -115,13 +115,24 @@ const Projects = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="flex" style={{ height: selectedPost ? 'calc(100vh - 3rem)' : 'calc(100vh - 4rem)' }}> {/* Adaptive height */}
+    <div
+      className="flex"
+      style={{
+        height: selectedPost ? "calc(100vh - 3rem)" : "calc(100vh - 4rem)",
+      }}
+    >
+      {" "}
+      {/* Adaptive height */}
       {/* Left Panel - Projects List */}
-      <div className={`transition-all duration-300 ${selectedPost ? 'w-1/3' : 'w-full'} overflow-y-auto border-r border-gray-200`}>
+      <div
+        className={`transition-all duration-300 ${
+          selectedPost ? "w-1/3" : "w-full"
+        } overflow-y-auto border-r border-gray-200`}
+      >
         <div className="p-6">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Projects</h1>
@@ -136,11 +147,13 @@ const Projects = () => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl">📅</span>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Projects Yet</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No Projects Yet
+                </h3>
                 <p className="text-gray-600 mb-4">
                   Upload a CSV file to create your first project
                 </p>
-                <Link 
+                <Link
                   to="/upload"
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
@@ -151,7 +164,10 @@ const Projects = () => {
           ) : (
             <div className="space-y-6">
               {projects.map((project) => (
-                <div key={project._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div
+                  key={project._id}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+                >
                   {/* Project Header */}
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-start justify-between">
@@ -173,59 +189,67 @@ const Projects = () => {
                   {/* Posts Grid */}
                   <div className="p-4">
                     <div className="grid grid-cols-2 gap-2">
-                      {project.posts.slice(0, showAllPosts[project._id] ? project.posts.length : 6).map((post) => (
-                        <div 
-                          key={post._id} 
-                          className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                            selectedPost?._id === post._id 
-                              ? 'border-blue-500 shadow-lg' 
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => handlePostClick(post)}
-                        >
-                          {/* Mini Preview */}
-                          <div 
-                            className="h-24 flex items-center justify-center text-center p-2 text-white text-xs"
-                            style={{ 
-                              background: getThemeGradient(post.theme)
-                            }}
+                      {project.posts
+                        .slice(
+                          0,
+                          showAllPosts[project._id] ? project.posts.length : 6
+                        )
+                        .map((post) => (
+                          <div
+                            key={post._id}
+                            className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                              selectedPost?._id === post._id
+                                ? "border-blue-500 shadow-lg"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                            onClick={() => handlePostClick(post)}
                           >
-                            <div className="line-clamp-3">
-                              {post.post_title}
+                            {/* Mini Preview */}
+                            <div
+                              className="h-24 flex items-center justify-center text-center p-2 text-white text-xs"
+                              style={{
+                                background: getThemeGradient(post.theme),
+                              }}
+                            >
+                              <div className="line-clamp-3">
+                                {post.post_title}
+                              </div>
                             </div>
-                          </div>
-                          
-                          {/* Post Info */}
-                          <div className="p-2 bg-white">
-                            <div className="flex items-center justify-between">
-                              <span className={`px-1 py-0.5 text-xs rounded ${getThemeColor(post.theme)}`}>
-                                {post.theme}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {post.pages.length}p
-                              </span>
-                            </div>
-                          </div>
 
-                          {/* Selected Indicator */}
-                          {selectedPost?._id === post._id && (
-                            <div className="absolute top-1 right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs">✓</span>
+                            {/* Post Info */}
+                            <div className="p-2 bg-white">
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={`px-1 py-0.5 text-xs rounded ${getThemeColor(
+                                    post.theme
+                                  )}`}
+                                >
+                                  {post.theme}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {post.pages.length}p
+                                </span>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+
+                            {/* Selected Indicator */}
+                            {selectedPost?._id === post._id && (
+                              <div className="absolute top-1 right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs">✓</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                     </div>
 
                     {project.posts.length > 6 && (
-                      <button 
+                      <button
                         className="w-full mt-3 text-sm text-blue-600 py-2 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
                         onClick={() => toggleShowAllPosts(project._id)}
                       >
-                        {showAllPosts[project._id] 
-                          ? 'Show less' 
-                          : `+ ${project.posts.length - 6} more posts`
-                        }
+                        {showAllPosts[project._id]
+                          ? "Show less"
+                          : `+ ${project.posts.length - 6} more posts`}
                       </button>
                     )}
                   </div>
@@ -235,7 +259,6 @@ const Projects = () => {
           )}
         </div>
       </div>
-
       {/* Right Panel - Post Editor */}
       {selectedPost && (
         <div className="w-2/3 flex flex-col">
@@ -243,131 +266,133 @@ const Projects = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 // Sleek Direct Post Editor Component
 const InlinePostEditor = ({ post, onClose }) => {
-  const [editablePost, setEditablePost] = useState(post)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [fontSize, setFontSize] = useState(16)
-  const [fontFamily, setFontFamily] = useState('Canva Sans')
-  const [textAlign, setTextAlign] = useState('center')
-  const [history, setHistory] = useState([post])
-  const [historyIndex, setHistoryIndex] = useState(0)
-  const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const [editablePost, setEditablePost] = useState(post);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [fontSize, setFontSize] = useState(16);
+  const [fontFamily, setFontFamily] = useState("Canva Sans");
+  const [textAlign, setTextAlign] = useState("center");
+  const [history, setHistory] = useState([post]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
 
   // Update editor when post prop changes (for post switching)
   useEffect(() => {
-    setEditablePost(post)
-    setCurrentPage(0) // Reset to first page
-    setHistory([post]) // Reset history
-    setHistoryIndex(0)
-    setFontSize(16) // Reset font size
-    setFontFamily('Canva Sans') // Reset font
-    setTextAlign('center') // Reset alignment
-  }, [post._id]) // Only trigger when the post ID changes
+    setEditablePost(post);
+    setCurrentPage(0); // Reset to first page
+    setHistory([post]); // Reset history
+    setHistoryIndex(0);
+    setFontSize(16); // Reset font size
+    setFontFamily("Canva Sans"); // Reset font
+    setTextAlign("center"); // Reset alignment
+  }, [post._id]); // Only trigger when the post ID changes
 
   // Auto-save functionality
   const autoSave = async (postData) => {
-    setIsAutoSaving(true)
+    setIsAutoSaving(true);
     try {
       await fetch(`/api/posts/${post._id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(postData),
-      })
+      });
     } catch (error) {
-      console.error('Auto-save failed:', error)
+      console.error("Auto-save failed:", error);
     } finally {
-      setIsAutoSaving(false)
+      setIsAutoSaving(false);
     }
-  }
+  };
 
   const updatePost = (updates) => {
-    const updatedPost = { ...editablePost, ...updates }
-    setEditablePost(updatedPost)
-    
+    const updatedPost = { ...editablePost, ...updates };
+    setEditablePost(updatedPost);
+
     // Add to history
-    const newHistory = history.slice(0, historyIndex + 1)
-    newHistory.push(updatedPost)
-    setHistory(newHistory)
-    setHistoryIndex(newHistory.length - 1)
-    
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(updatedPost);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+
     // Auto-save
-    setTimeout(() => autoSave(updatedPost), 1000)
-  }
+    setTimeout(() => autoSave(updatedPost), 1000);
+  };
 
   const updatePageContent = (pageIndex, content) => {
-    const updatedPages = [...editablePost.pages]
-    updatedPages[pageIndex] = { ...updatedPages[pageIndex], content }
-    updatePost({ pages: updatedPages })
-  }
+    const updatedPages = [...editablePost.pages];
+    updatedPages[pageIndex] = { ...updatedPages[pageIndex], content };
+    updatePost({ pages: updatedPages });
+  };
 
   const formatText = (format, savedSelection = null) => {
-    const editableDiv = document.getElementById(`editable-content-${currentPage}`)
-    if (!editableDiv) return
-    
+    const editableDiv = document.getElementById(
+      `editable-content-${currentPage}`
+    );
+    if (!editableDiv) return;
+
     // Focus the element first
-    editableDiv.focus()
-    
+    editableDiv.focus();
+
     // If we have a saved selection, restore it
     if (savedSelection) {
-      const selection = window.getSelection()
-      selection.removeAllRanges()
-      selection.addRange(savedSelection)
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(savedSelection);
     }
-    
+
     // Use browser's built-in execCommand for reliable formatting
-    let command
+    let command;
     switch (format) {
-      case 'bold':
-        command = 'bold'
-        break
-      case 'italic':
-        command = 'italic'
-        break
-      case 'underline':
-        command = 'underline'
-        break
+      case "bold":
+        command = "bold";
+        break;
+      case "italic":
+        command = "italic";
+        break;
+      case "underline":
+        command = "underline";
+        break;
       default:
-        return
+        return;
     }
-    
+
     // Execute the command
-    const success = document.execCommand(command, false, null)
-    console.log(`execCommand(${command}) result:`, success)
-    
+    const success = document.execCommand(command, false, null);
+    console.log(`execCommand(${command}) result:`, success);
+
     // Update the content in state after a brief delay
     setTimeout(() => {
       if (editableDiv) {
-        updatePageContent(currentPage, editableDiv.innerHTML)
+        updatePageContent(currentPage, editableDiv.innerHTML);
       }
-    }, 50)
-  }
+    }, 50);
+  };
 
   const undo = () => {
     if (historyIndex > 0) {
-      const newIndex = historyIndex - 1
-      setHistoryIndex(newIndex)
-      setEditablePost(history[newIndex])
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setEditablePost(history[newIndex]);
     }
-  }
+  };
 
   const redo = () => {
     if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1
-      setHistoryIndex(newIndex)
-      setEditablePost(history[newIndex])
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setEditablePost(history[newIndex]);
     }
-  }
+  };
 
   const handleDirectEdit = (e) => {
-    const content = e.target.innerHTML
-    updatePageContent(currentPage, content)
-  }
+    const content = e.target.innerHTML;
+    updatePageContent(currentPage, content);
+  };
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -376,7 +401,7 @@ const InlinePostEditor = ({ post, onClose }) => {
         <div className="flex items-center justify-between">
           {/* Left: Font & Format Controls */}
           <div className="flex items-center space-x-3">
-            <select 
+            <select
               className="px-3 py-1 border border-gray-300 rounded text-sm bg-white min-w-[120px]"
               value={fontFamily}
               onChange={(e) => setFontFamily(e.target.value)}
@@ -385,16 +410,18 @@ const InlinePostEditor = ({ post, onClose }) => {
               <option value="Arial">Arial</option>
               <option value="Times New Roman">Times New Roman</option>
             </select>
-            
+
             <div className="flex items-center border border-gray-300 rounded bg-white">
-              <button 
+              <button
                 onClick={() => setFontSize(Math.max(8, fontSize - 2))}
                 className="px-2 py-1 hover:bg-gray-100 text-sm"
               >
                 -
               </button>
-              <span className="px-3 py-1 text-sm min-w-[40px] text-center">{fontSize}</span>
-              <button 
+              <span className="px-3 py-1 text-sm min-w-[40px] text-center">
+                {fontSize}
+              </span>
+              <button
                 onClick={() => setFontSize(Math.min(72, fontSize + 2))}
                 className="px-2 py-1 hover:bg-gray-100 text-sm"
               >
@@ -404,28 +431,34 @@ const InlinePostEditor = ({ post, onClose }) => {
 
             <div className="flex items-center space-x-1">
               <button className="w-7 h-7 rounded bg-red-500 border border-gray-300"></button>
-              <button 
+              <button
                 onMouseDown={(e) => {
-                  e.preventDefault() // Prevent focus loss
+                  e.preventDefault(); // Prevent focus loss
                   // Save current selection at the moment of button press
-                  const selection = window.getSelection()
-                  const savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null
+                  const selection = window.getSelection();
+                  const savedRange =
+                    selection.rangeCount > 0
+                      ? selection.getRangeAt(0).cloneRange()
+                      : null;
                   // Apply formatting with the saved selection
-                  setTimeout(() => formatText('bold', savedRange), 10)
+                  setTimeout(() => formatText("bold", savedRange), 10);
                 }}
                 className="w-8 h-8 font-bold text-sm hover:bg-gray-200 rounded flex items-center justify-center"
                 title="Bold"
               >
                 B
               </button>
-              <button 
+              <button
                 onMouseDown={(e) => {
-                  e.preventDefault() // Prevent focus loss
+                  e.preventDefault(); // Prevent focus loss
                   // Save current selection at the moment of button press
-                  const selection = window.getSelection()
-                  const savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null
+                  const selection = window.getSelection();
+                  const savedRange =
+                    selection.rangeCount > 0
+                      ? selection.getRangeAt(0).cloneRange()
+                      : null;
                   // Apply formatting with the saved selection
-                  setTimeout(() => formatText('italic', savedRange), 10)
+                  setTimeout(() => formatText("italic", savedRange), 10);
                 }}
                 className="w-8 h-8 italic text-sm hover:bg-gray-200 rounded flex items-center justify-center"
                 title="Italic"
@@ -436,23 +469,29 @@ const InlinePostEditor = ({ post, onClose }) => {
 
             {/* Text Alignment */}
             <div className="flex items-center space-x-1 border-l border-gray-300 pl-3">
-              <button 
-                onClick={() => setTextAlign('left')}
-                className={`w-8 h-8 rounded flex items-center justify-center ${textAlign === 'left' ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+              <button
+                onClick={() => setTextAlign("left")}
+                className={`w-8 h-8 rounded flex items-center justify-center ${
+                  textAlign === "left" ? "bg-blue-100" : "hover:bg-gray-100"
+                }`}
                 title="Align Left"
               >
                 ⫷
               </button>
-              <button 
-                onClick={() => setTextAlign('center')}
-                className={`w-8 h-8 rounded flex items-center justify-center ${textAlign === 'center' ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+              <button
+                onClick={() => setTextAlign("center")}
+                className={`w-8 h-8 rounded flex items-center justify-center ${
+                  textAlign === "center" ? "bg-blue-100" : "hover:bg-gray-100"
+                }`}
                 title="Align Center"
               >
                 ⫸
               </button>
-              <button 
-                onClick={() => setTextAlign('right')}
-                className={`w-8 h-8 rounded flex items-center justify-center ${textAlign === 'right' ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+              <button
+                onClick={() => setTextAlign("right")}
+                className={`w-8 h-8 rounded flex items-center justify-center ${
+                  textAlign === "right" ? "bg-blue-100" : "hover:bg-gray-100"
+                }`}
                 title="Align Right"
               >
                 ⫷
@@ -460,7 +499,7 @@ const InlinePostEditor = ({ post, onClose }) => {
             </div>
 
             {/* Theme Selector */}
-            <select 
+            <select
               value={editablePost.theme}
               onChange={(e) => updatePost({ theme: e.target.value })}
               className="px-3 py-1 border border-gray-300 rounded text-sm bg-white min-w-[100px]"
@@ -483,8 +522,8 @@ const InlinePostEditor = ({ post, onClose }) => {
                   onClick={() => setCurrentPage(index)}
                   className={`w-8 h-8 rounded text-xs font-medium transition-colors ${
                     index === currentPage
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {index + 1}
@@ -495,7 +534,7 @@ const InlinePostEditor = ({ post, onClose }) => {
 
           {/* Right: Actions */}
           <div className="flex items-center space-x-2">
-            <button 
+            <button
               onClick={undo}
               disabled={historyIndex <= 0}
               className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 disabled:opacity-50 rounded hover:bg-gray-100"
@@ -503,7 +542,7 @@ const InlinePostEditor = ({ post, onClose }) => {
             >
               ↶
             </button>
-            <button 
+            <button
               onClick={redo}
               disabled={historyIndex >= history.length - 1}
               className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 disabled:opacity-50 rounded hover:bg-gray-100"
@@ -511,12 +550,12 @@ const InlinePostEditor = ({ post, onClose }) => {
             >
               ↷
             </button>
-            
+
             {isAutoSaving && (
               <span className="text-xs text-gray-500">Saving...</span>
             )}
-            
-            <button 
+
+            <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 rounded hover:bg-gray-100"
               title="Close"
@@ -541,10 +580,20 @@ const InlinePostEditor = ({ post, onClose }) => {
 
           {/* Editable Post Content */}
           <div className="relative">
-            <div 
+            <div
               className="w-full h-96 flex items-center justify-center p-6 text-center relative cursor-text"
-              style={{ 
-                background: `linear-gradient(135deg, ${editablePost.theme === 'gold' ? '#FFD700, #FFA500' : editablePost.theme === 'blue' ? '#4A90E2, #7B68EE' : editablePost.theme === 'geometric' ? '#667eea, #764ba2' : editablePost.theme === 'calligraphy' ? '#2E7D32, #4CAF50' : '#263238, #37474F'})`,
+              style={{
+                background: `linear-gradient(135deg, ${
+                  editablePost.theme === "gold"
+                    ? "#FFD700, #FFA500"
+                    : editablePost.theme === "blue"
+                    ? "#4A90E2, #7B68EE"
+                    : editablePost.theme === "geometric"
+                    ? "#667eea, #764ba2"
+                    : editablePost.theme === "calligraphy"
+                    ? "#2E7D32, #4CAF50"
+                    : "#263238, #37474F"
+                })`,
               }}
             >
               <div className="text-white max-w-full w-full">
@@ -553,43 +602,55 @@ const InlinePostEditor = ({ post, onClose }) => {
                   contentEditable
                   suppressContentEditableWarning={true}
                   className="text-lg font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded px-2 py-1"
-                  style={{ 
+                  style={{
                     fontSize: `${Math.max(16, fontSize)}px`,
-                    fontFamily: fontFamily === 'Canva Sans' ? 'system-ui, -apple-system, sans-serif' : fontFamily,
+                    fontFamily:
+                      fontFamily === "Canva Sans"
+                        ? "system-ui, -apple-system, sans-serif"
+                        : fontFamily,
                     textAlign,
-                    minHeight: '1.5em'
+                    minHeight: "1.5em",
                   }}
-                  onBlur={(e) => updatePost({ post_title: e.target.textContent })}
+                  onBlur={(e) =>
+                    updatePost({ post_title: e.target.textContent })
+                  }
                   dangerouslySetInnerHTML={{ __html: editablePost.post_title }}
                 />
-                
+
                 {/* Editable Content */}
                 <div
                   id={`editable-content-${currentPage}`}
                   contentEditable
                   suppressContentEditableWarning={true}
                   className="text-sm leading-relaxed outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded px-2 py-1"
-                  style={{ 
+                  style={{
                     fontSize: `${fontSize}px`,
-                    fontFamily: fontFamily === 'Canva Sans' ? 'system-ui, -apple-system, sans-serif' : fontFamily,
+                    fontFamily:
+                      fontFamily === "Canva Sans"
+                        ? "system-ui, -apple-system, sans-serif"
+                        : fontFamily,
                     textAlign,
-                    minHeight: '4em'
+                    minHeight: "4em",
                   }}
                   onInput={handleDirectEdit}
                   onBlur={handleDirectEdit}
-                  dangerouslySetInnerHTML={{ 
-                    __html: editablePost.pages[currentPage]?.content || 'Click to edit content...'
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      editablePost.pages[currentPage]?.content ||
+                      "Click to edit content...",
                   }}
                 />
               </div>
-              
+
               {/* Page indicators */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                 {editablePost.pages.map((_, index) => (
                   <div
                     key={index}
-                    className={`w-2 h-2 rounded-full transition-colors cursor-pointer ${
-                      index === currentPage ? 'bg-white' : 'bg-white bg-opacity-50'
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ease-in-out cursor-pointer ${
+                      index === currentPage
+                        ? "bg-white scale-150 shadow-lg"
+                        : "bg-white bg-opacity-50 hover:bg-opacity-70"
                     }`}
                     onClick={() => setCurrentPage(index)}
                   />
@@ -602,7 +663,7 @@ const InlinePostEditor = ({ post, onClose }) => {
               <>
                 {currentPage > 0 && (
                   <button
-                    onClick={() => setCurrentPage(prev => prev - 1)}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70 transition-opacity"
                   >
                     ←
@@ -610,7 +671,7 @@ const InlinePostEditor = ({ post, onClose }) => {
                 )}
                 {currentPage < editablePost.pages.length - 1 && (
                   <button
-                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70 transition-opacity"
                   >
                     →
@@ -624,23 +685,32 @@ const InlinePostEditor = ({ post, onClose }) => {
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex space-x-4">
-                <span className="text-lg cursor-pointer hover:scale-110 transition-transform">♥️</span>
-                <span className="text-lg cursor-pointer hover:scale-110 transition-transform">💬</span>
-                <span className="text-lg cursor-pointer hover:scale-110 transition-transform">📤</span>
+                <span className="text-lg cursor-pointer hover:scale-110 transition-transform">
+                  ♥️
+                </span>
+                <span className="text-lg cursor-pointer hover:scale-110 transition-transform">
+                  💬
+                </span>
+                <span className="text-lg cursor-pointer hover:scale-110 transition-transform">
+                  📤
+                </span>
               </div>
-              <span className="text-lg cursor-pointer hover:scale-110 transition-transform">🔖</span>
+              <span className="text-lg cursor-pointer hover:scale-110 transition-transform">
+                🔖
+              </span>
             </div>
             <div className="text-sm">
               <p className="font-semibold mb-1">1,234 likes</p>
               <p className="text-gray-600">
-                <span className="font-semibold">islamic_quotes_daily</span> {editablePost.post_title}
+                <span className="font-semibold">islamic_quotes_daily</span>{" "}
+                {editablePost.post_title}
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Projects
+export default Projects;
