@@ -1,6 +1,8 @@
 const express = require("express");
 const Post = require("../models/Post");
 const Project = require("../models/Project");
+const { generateCarouselImages } = require("../services/imageGenerationService");
+const { uploadMultipleImageBuffers } = require("../services/cloudinaryService");
 const router = express.Router();
 
 // GET /api/posts - Get all posts
@@ -278,6 +280,65 @@ router.put("/:id", async (req, res) => {
     delete updates._id;
     delete updates.__v;
 
+    // Check if this is a scheduling request
+    if (updates.scheduled_for) {
+      const scheduledDate = new Date(updates.scheduled_for);
+      const now = new Date();
+
+      // Validate that scheduled_for is a future date
+      if (scheduledDate <= now) {
+        return res.status(400).json({
+          error: "Scheduled date must be in the future",
+        });
+      }
+
+      // Get the current post to access its pages
+      const currentPost = await Post.findById(postId);
+      if (!currentPost) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      // Orchestrate image generation and upload process
+      try {
+        console.log(`Starting image generation for post ${postId}...`);
+        
+        // Step 1: Generate Image Buffers in correct sequential order
+        const postData = {
+          theme: currentPost.theme,
+          font: currentPost.font,
+          pages: currentPost.pages.sort((a, b) => a.page_number - b.page_number), // Ensure correct order
+        };
+
+        const imageBuffers = await generateCarouselImages(postData);
+        console.log(`Generated ${imageBuffers.length} image buffers for post ${postId}`);
+
+        // Step 2: Upload to Cloudinary and collect URLs in order
+        const uploadOptions = {
+          folder: `insta-tool/posts/${postId}`,
+          public_id: `post_${postId}`,
+        };
+
+        const cloudinaryUrls = await uploadMultipleImageBuffers(imageBuffers, uploadOptions);
+        console.log(`Uploaded ${cloudinaryUrls.length} images to Cloudinary for post ${postId}`);
+
+        // Step 3: Update database with scheduled status and ordered URLs
+        updates.status = 'scheduled';
+        updates.generatedImageUrls = cloudinaryUrls; // URLs in correct page order
+        updates.scheduled_for = scheduledDate;
+        
+        // Keep new Instagram fields empty for now
+        updates.instagramContainerIds = [];
+        updates.instagramCarouselId = "";
+
+      } catch (imageError) {
+        console.error(`Image generation/upload error for post ${postId}:`, imageError);
+        return res.status(500).json({
+          error: "Failed to generate and upload images for scheduled post",
+          details: imageError.message,
+        });
+      }
+    }
+
     const updatedPost = await Post.findByIdAndUpdate(postId, updates, {
       new: true,
       runValidators: true,
@@ -292,6 +353,7 @@ router.put("/:id", async (req, res) => {
       post: updatedPost,
     });
   } catch (error) {
+    console.error("Post update error:", error);
     res.status(500).json({ error: error.message });
   }
 });

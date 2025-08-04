@@ -51,6 +51,14 @@ const PostSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  instagramContainerIds: {
+    type: [String],
+    default: [],
+  },
+  instagramCarouselId: {
+    type: String,
+    default: "",
+  },
   created_at: {
     type: Date,
     default: Date.now,
