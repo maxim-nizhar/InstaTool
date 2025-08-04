@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ScheduleModal = ({ post, onClose, onSchedule }) => {
+const ScheduleModal = ({ post, onClose, onSchedule, isScheduling = false }) => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState({
     hours: "12",
@@ -169,15 +169,24 @@ const ScheduleModal = ({ post, onClose, onSchedule }) => {
         <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            disabled={isScheduling}
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSchedule}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            disabled={isScheduling}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
-            Confirm Schedule
+            {isScheduling ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Scheduling...</span>
+              </>
+            ) : (
+              <span>Confirm Schedule</span>
+            )}
           </button>
         </div>
       </div>

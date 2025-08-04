@@ -7,6 +7,36 @@ const ImageTest = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case "draft":
+        return "bg-gray-100 text-gray-700";
+      case "scheduled":
+        return "bg-blue-100 text-blue-700";
+      case "published":
+        return "bg-green-100 text-green-700";
+      case "failed":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getStatusBadgeText = (status) => {
+    switch (status) {
+      case "draft":
+        return "Draft";
+      case "scheduled":
+        return "Scheduled";
+      case "published":
+        return "Published";
+      case "failed":
+        return "Failed";
+      default:
+        return "Draft";
+    }
+  };
+
   // Fetch posts on component mount
   useEffect(() => {
     fetchPosts();
@@ -185,6 +215,16 @@ const ImageTest = () => {
                   </span>
                   <span className="text-sm text-gray-600">
                     {post.pages} pages
+                  </span>
+                </div>
+                {/* Status Badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(
+                      post.status
+                    )}`}
+                  >
+                    {getStatusBadgeText(post.status)}
                   </span>
                 </div>
                 {post.hasGeneratedImages && (

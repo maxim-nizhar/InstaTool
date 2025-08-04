@@ -63,6 +63,36 @@ const Projects = () => {
     return gradients[theme] || gradients.modern;
   };
 
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case "draft":
+        return "bg-gray-100 text-gray-700";
+      case "scheduled":
+        return "bg-blue-100 text-blue-700";
+      case "published":
+        return "bg-green-100 text-green-700";
+      case "failed":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getStatusBadgeText = (status) => {
+    switch (status) {
+      case "draft":
+        return "Draft";
+      case "scheduled":
+        return "Scheduled";
+      case "published":
+        return "Published";
+      case "failed":
+        return "Failed";
+      default:
+        return "Draft";
+    }
+  };
+
   const handlePostClick = (post) => {
     setSelectedPost(post);
     setIsEditingMode(true);
@@ -219,7 +249,7 @@ const Projects = () => {
 
                             {/* Post Info */}
                             <div className="p-2 bg-white">
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between mb-1">
                                 <span
                                   className={`px-1 py-0.5 text-xs rounded ${getThemeColor(
                                     post.theme
@@ -229,6 +259,16 @@ const Projects = () => {
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {post.pages.length}p
+                                </span>
+                              </div>
+                              {/* Status Badge */}
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={`px-1.5 py-0.5 text-xs rounded-full font-medium ${getStatusBadgeColor(
+                                    post.status
+                                  )}`}
+                                >
+                                  {getStatusBadgeText(post.status)}
                                 </span>
                               </div>
                             </div>
@@ -281,6 +321,7 @@ const InlinePostEditor = ({ post, onClose }) => {
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
 
   // Update editor when post prop changes (for post switching)
   useEffect(() => {
@@ -733,12 +774,33 @@ const InlinePostEditor = ({ post, onClose }) => {
         </div>
       </div>
 
+      {/* Loading Overlay */}
+      {isScheduling && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md mx-4">
+            <div className="flex items-center space-x-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Scheduling Post
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Preparing images and setting up schedule...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Schedule Modal */}
       {showScheduleModal && (
         <ScheduleModal
           post={editablePost}
           onClose={() => setShowScheduleModal(false)}
+          isScheduling={isScheduling}
           onSchedule={async (scheduledDateTime) => {
+            setIsScheduling(true);
             try {
               // Save the scheduled post
               const response = await fetch(
@@ -756,12 +818,16 @@ const InlinePostEditor = ({ post, onClose }) => {
               );
 
               if (response.ok) {
-                alert("Post scheduled successfully!");
                 // Update the post status in local state
                 updatePost({
                   scheduled_for: scheduledDateTime,
                   status: "scheduled",
                 });
+
+                // Refresh projects to show updated status badges
+                await fetchProjects();
+
+                alert("Post scheduled successfully!");
               } else {
                 const errorData = await response.json();
                 alert(
@@ -772,8 +838,10 @@ const InlinePostEditor = ({ post, onClose }) => {
             } catch (error) {
               console.error("Scheduling error:", error);
               alert("Failed to schedule post: " + error.message);
+            } finally {
+              setIsScheduling(false);
+              setShowScheduleModal(false);
             }
-            setShowScheduleModal(false);
           }}
         />
       )}
