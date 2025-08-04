@@ -249,6 +249,196 @@ router.post("/:id/schedule", async (req, res) => {
   }
 });
 
+// POST /api/posts/:id/publish - Publish post immediately with image generation
+router.post("/:id/publish", async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { caption } = req.body;
+
+    console.log(`🚀 Starting direct publish workflow for post ${postId}`);
+
+    // Get the post from database
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Step 1: Generate images if not already generated
+    let imageUrls = post.generatedImageUrls || [];
+    
+    if (imageUrls.length === 0) {
+      console.log(`📸 Generating images for post "${post.post_title}"`);
+      
+      try {
+        // Prepare data for image generation
+        const postData = {
+          theme: post.theme || "modern",
+          font: post.font || "Arial",
+          pages: post.pages.map((page) => ({
+            content: page.content,
+            theme: post.theme,
+            font: post.font,
+          })),
+        };
+
+        // Generate images
+        const imageBuffers = await generateCarouselImages(postData);
+        console.log(`✅ Generated ${imageBuffers.length} image buffers`);
+
+        // Upload to Cloudinary
+        const uploadOptions = {
+          folder: "insta-tool/posts",
+          public_id: `${postId}_${post.post_title.replace(/[^a-zA-Z0-9]/g, "_")}`,
+        };
+
+        imageUrls = await uploadMultipleImageBuffers(imageBuffers, uploadOptions);
+        console.log(`✅ Uploaded ${imageUrls.length} images to Cloudinary`);
+
+        // Update post with generated image URLs
+        await Post.findByIdAndUpdate(postId, {
+          generatedImageUrls: imageUrls,
+        });
+
+      } catch (imageError) {
+        console.error(`❌ Image generation failed for post ${postId}:`, imageError);
+        // Update post status to failed
+        await Post.findByIdAndUpdate(postId, { 
+          status: 'failed',
+          error_message: `Image generation failed: ${imageError.message}` 
+        });
+        
+        return res.status(500).json({
+          error: "Failed to generate images for publishing",
+          details: imageError.message,
+        });
+      }
+    } else {
+      console.log(`✅ Using existing ${imageUrls.length} generated images`);
+    }
+
+    // Step 2: Publish to Instagram (if configured)
+    const InstagramAPIService = require('../services/instagramAPI');
+    const instagramService = new InstagramAPIService();
+    
+    // Check if Instagram is configured
+    if (!process.env.INSTAGRAM_ACCESS_TOKEN || !process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID) {
+      console.log('⚠️ Instagram API not configured, marking as published without Instagram upload');
+      
+      // Update post status to published (without Instagram)
+      const updatedPost = await Post.findByIdAndUpdate(postId, {
+        status: 'published',
+        published_at: new Date(),
+        updated_at: new Date(),
+      }, { new: true }).populate("project_id");
+
+      return res.json({
+        success: true,
+        message: `Post "${post.post_title}" published successfully (Instagram API not configured)`,
+        post: updatedPost,
+        imageUrls: imageUrls,
+        instagramConfigured: false,
+      });
+    }
+
+    try {
+      console.log(`📱 Publishing to Instagram with ${imageUrls.length} images`);
+      
+      // Create caption from post content if not provided
+      const postCaption = caption || `${post.post_title}\n\n${post.pages[0]?.content || ''}`;
+
+      let instagramResult;
+      
+      // Use single image or carousel based on number of images
+      if (imageUrls.length === 1) {
+        instagramResult = await instagramService.postSingleImage(imageUrls[0], postCaption);
+      } else {
+        instagramResult = await instagramService.postCarousel(imageUrls, postCaption);
+      }
+
+      if (instagramResult.success) {
+        // Update post in database with Instagram information
+        const updateData = {
+          status: 'published',
+          instagramCarouselId: instagramResult.postId,
+          published_at: new Date(),
+          updated_at: new Date(),
+          generatedImageUrls: imageUrls, // Ensure URLs are saved
+        };
+
+        // Add individual container IDs if it's a carousel
+        if (instagramResult.individualContainerIds) {
+          updateData.instagramContainerIds = instagramResult.individualContainerIds;
+        } else if (instagramResult.containerId) {
+          updateData.instagramContainerIds = [instagramResult.containerId];
+        }
+
+        const updatedPost = await Post.findByIdAndUpdate(postId, updateData, { new: true }).populate("project_id");
+
+        console.log('✅ Post published to Instagram and database updated');
+
+        res.json({
+          success: true,
+          message: `Post "${post.post_title}" published to Instagram successfully`,
+          post: updatedPost,
+          instagramPostId: instagramResult.postId,
+          instagramUrl: `https://www.instagram.com/p/${instagramResult.postId}`,
+          imageUrls: imageUrls,
+          instagramConfigured: true,
+        });
+      } else {
+        // Instagram publish failed
+        console.error(`❌ Instagram publish failed: ${instagramResult.error}`);
+        
+        // Update post status to failed
+        await Post.findByIdAndUpdate(postId, { 
+          status: 'failed',
+          error_message: `Instagram publish failed: ${instagramResult.error}`,
+          generatedImageUrls: imageUrls, // Keep the generated images
+        });
+
+        return res.status(400).json({
+          error: "Failed to publish to Instagram",
+          details: instagramResult.error,
+          imageUrls: imageUrls, // Still return the generated images
+        });
+      }
+    } catch (instagramError) {
+      console.error(`❌ Instagram publish error for post ${postId}:`, instagramError);
+      
+      // Update post status to failed
+      await Post.findByIdAndUpdate(postId, { 
+        status: 'failed',
+        error_message: `Instagram publish error: ${instagramError.message}`,
+        generatedImageUrls: imageUrls, // Keep the generated images
+      });
+
+      return res.status(500).json({
+        error: "Instagram publish failed with server error",
+        details: instagramError.message,
+        imageUrls: imageUrls, // Still return the generated images
+      });
+    }
+
+  } catch (error) {
+    console.error("Direct publish error:", error);
+    
+    // Update post status to failed
+    try {
+      await Post.findByIdAndUpdate(postId, { 
+        status: 'failed',
+        error_message: `Publish workflow failed: ${error.message}` 
+      });
+    } catch (dbError) {
+      console.error('Failed to update post status:', dbError);
+    }
+
+    res.status(500).json({
+      error: "Direct publish workflow failed",
+      details: error.message,
+    });
+  }
+});
+
 // =============================================================================
 // GENERAL POST ENDPOINTS
 // =============================================================================

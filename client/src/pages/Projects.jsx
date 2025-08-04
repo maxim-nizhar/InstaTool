@@ -437,6 +437,57 @@ const InlinePostEditor = ({ post, onClose }) => {
     updatePageContent(currentPage, content);
   };
 
+  const handlePublishNow = async () => {
+    setIsScheduling(true);
+    try {
+      console.log(`🚀 Publishing post "${editablePost.post_title}" immediately`);
+      
+      // Call the new publish endpoint
+      const response = await fetch(`/api/posts/${editablePost._id}/publish`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          caption: `${editablePost.post_title}\n\n${editablePost.pages[0]?.content || ''}`,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Update the post status in local state
+        updatePost({
+          status: "published",
+          published_at: new Date(),
+          generatedImageUrls: result.imageUrls || editablePost.generatedImageUrls,
+          instagramCarouselId: result.instagramPostId || "",
+        });
+
+        // Refresh projects to show updated status badges
+        await fetchProjects();
+
+        // Show success message
+        if (result.instagramConfigured) {
+          alert(`🎉 Post published to Instagram successfully!\n\nInstagram URL: ${result.instagramUrl || 'Check your Instagram account'}`);
+        } else {
+          alert(`✅ Post published successfully!\n\nNote: Instagram API is not configured, so the post was marked as published but not uploaded to Instagram.`);
+        }
+      } else {
+        console.error("Publish failed:", result);
+        alert(
+          "❌ Failed to publish post: " +
+            (result.error || result.details || "Unknown error")
+        );
+      }
+    } catch (error) {
+      console.error("Publish error:", error);
+      alert("❌ Failed to publish post: " + error.message);
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Sleek Top Toolbar */}
@@ -753,18 +804,17 @@ const InlinePostEditor = ({ post, onClose }) => {
             {/* Scheduling Controls - Moved to bottom */}
             <div className="flex items-center space-x-3 mt-4 pt-4 border-t border-gray-100">
               <button
-                onClick={() => {
-                  // TODO: Publish immediately
-                  console.log("Publishing now...");
-                }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                onClick={handlePublishNow}
+                disabled={isScheduling}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Publish Now"
               >
-                Publish Now
+                {isScheduling ? "Publishing..." : "Publish Now"}
               </button>
               <button
                 onClick={() => setShowScheduleModal(true)}
-                className="flex-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium"
+                disabled={isScheduling}
+                className="flex-1 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Schedule Post"
               >
                 📅 Schedule
@@ -782,10 +832,10 @@ const InlinePostEditor = ({ post, onClose }) => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Scheduling Post
+                  Processing Post
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Preparing images and setting up schedule...
+                  Generating images and preparing for publication...
                 </p>
               </div>
             </div>
