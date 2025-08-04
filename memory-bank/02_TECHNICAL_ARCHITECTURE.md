@@ -5,6 +5,7 @@
 ## Technology Stack
 
 ### Frontend (React + Tailwind)
+
 - **Framework**: React 18 with modern hooks
 - **Styling**: Tailwind CSS v4 with custom Islamic theme colors
 - **State Management**: React Context + useState/useEffect
@@ -13,6 +14,7 @@
 - **Port**: 5173 (Vite default)
 
 ### Backend (Node.js + Express)
+
 - **Runtime**: Node.js with Express.js framework
 - **Database**: MongoDB Atlas with Mongoose ODM
 - **File Processing**: Multer for uploads, csv-parser for processing
@@ -21,6 +23,7 @@
 - **Port**: 3001 (configured)
 
 ### Database (MongoDB Atlas)
+
 - **Primary**: MongoDB Atlas cloud database
 - **Connection**: mongoose with optimized connection pooling
 - **Cluster**: cluster000.n00tsc0.mongodb.net
@@ -30,11 +33,13 @@
 ## Architecture Patterns
 
 ### Client-Server Pattern
+
 ```
 Frontend (React + Tailwind) ↔ Backend (Node.js + Express) ↔ Database (MongoDB)
 ```
 
 ### Data Flow Architecture
+
 1. **CSV Upload Flow**: Upload → Parse → Validate → Create Posts → Store → Display
 2. **Editing Flow**: Select Post → Edit Content → Auto-Save → Update Database
 3. **Rendering Flow**: Fetch Posts → Apply Themes → Render Preview → User Interaction
@@ -42,21 +47,26 @@ Frontend (React + Tailwind) ↔ Backend (Node.js + Express) ↔ Database (MongoD
 ### Component Architecture
 
 #### Frontend Components
+
 - **UploadInterface**: Drag & drop CSV upload with validation
 - **PostEditor**: Professional Canva-like editing interface
-- **ProjectView**: Grid layout for post browsing and selection  
+- **ProjectView**: Grid layout for post browsing and selection
 - **PreviewSystem**: Authentic Instagram post preview
 - **Navbar**: Responsive navigation with editing mode adaptation
 
 #### Backend Services
+
 - **CSVProcessor**: Parse and validate CSV files
 - **PostService**: CRUD operations for posts
 - **ProjectService**: Project management and organization
 - **DatabaseService**: MongoDB connection and query optimization
+- **ImageGenerationService**: Sharp-based 1080x1080 Instagram image creation
+- **CloudinaryService**: Async buffer upload with secure URL generation
 
 ## Data Models
 
 ### Post Schema (Enhanced)
+
 ```javascript
 {
   _id: ObjectId,
@@ -69,17 +79,19 @@ Frontend (React + Tailwind) ↔ Backend (Node.js + Express) ↔ Database (MongoD
     content: String
   }],
   project_id: ObjectId, // Reference to Project
-  status: String, // 'draft', 'scheduled', 'published', 'failed'
+  status: String, // 'draft', 'scheduled', 'published', 'failed' (defaults to 'draft')
   image_urls: [{
     page_number: Number,
     url: String
   }],
+  generatedImageUrls: [String], // Array of cloud storage URLs for final images
   created_at: Date,
   updated_at: Date
 }
 ```
 
 ### Project Schema (Optimized)
+
 ```javascript
 {
   _id: ObjectId,
@@ -94,6 +106,7 @@ Frontend (React + Tailwind) ↔ Backend (Node.js + Express) ↔ Database (MongoD
 ## API Architecture
 
 ### REST Endpoints (All Working)
+
 ```bash
 GET  /api/health              # Server health check
 GET  /api/posts               # Retrieve all posts with project population
@@ -103,9 +116,18 @@ GET  /api/posts/:id           # Get individual post for editing
 PUT  /api/posts/:id           # Update individual post (for auto-save)
 POST /api/upload              # CSV processing with full post generation
 DELETE /api/posts/cleanup     # Database cleanup utility
+
+# Image Generation & Upload APIs
+GET  /api/images/generate/:id # Generate images for specific post
+POST /api/images/upload/:id   # Generate and upload images to Cloudinary
+POST /api/images/preview      # Generate single preview image
+GET  /api/images/status       # Get image generation status for all posts
+GET  /api/images/view/:file   # Serve generated images
+GET  /api/images/download/:file # Download generated images
 ```
 
 ### Error Handling Patterns
+
 - **Validation Layer**: Input sanitization and type checking
 - **Error Recovery**: Graceful degradation with user-friendly messages
 - **Database Errors**: Connection retry logic and transaction rollback
@@ -114,6 +136,7 @@ DELETE /api/posts/cleanup     # Database cleanup utility
 ## Development Environment
 
 ### Project Structure (Optimized)
+
 ```
 instaTool/
 ├── client/                 # React frontend (port 5173)
@@ -140,8 +163,12 @@ instaTool/
 │   │   ├── posts.js        # Post CRUD operations
 │   │   └── upload.js       # CSV upload handling
 │   ├── services/           # Business logic
+│   │   ├── imageGenerationService.js # Sharp-based image creation
+│   │   ├── cloudinaryService.js     # Cloud upload functionality
+│   │   └── instagramAPI.js          # Instagram API integration
 │   ├── middleware/         # Express middleware
 │   ├── uploads/            # Temporary file storage
+│   ├── generated_images/   # Local image storage
 │   └── package.json
 ├── memory-bank/            # Project documentation
 ├── .env                    # Environment variables
@@ -149,6 +176,7 @@ instaTool/
 ```
 
 ### Essential Scripts
+
 ```json
 {
   "scripts": {
@@ -164,18 +192,21 @@ instaTool/
 ## Performance Optimizations
 
 ### Frontend Performance
+
 - **React Optimizations**: Proper useEffect dependencies and memo usage
 - **State Management**: Efficient state updates with minimal re-renders
 - **CSS Performance**: Tailwind CSS with purged unused styles
 - **Bundle Size**: Code splitting and lazy loading for large components
 
-### Backend Performance  
+### Backend Performance
+
 - **Database Queries**: Optimized with proper indexing and population
 - **File Processing**: Streaming CSV parsing for large files
 - **Auto-Save**: Debounced saves (1-second delay) to prevent excessive writes
 - **Memory Management**: Proper cleanup of temporary files and connections
 
 ### Database Performance
+
 - **Indexing**: Optimized indexes on frequently queried fields
 - **Connection Pooling**: Efficient MongoDB connection management
 - **Query Optimization**: Populate only necessary fields
@@ -184,12 +215,14 @@ instaTool/
 ## Security Implementation
 
 ### Input Sanitization
+
 - **CSV Content**: All text inputs sanitized before database storage
 - **File Validation**: Verify CSV file integrity and size limits
 - **XSS Prevention**: Proper content escaping in React components
 - **SQL Injection**: Parameterized queries through Mongoose
 
 ### Environment Security
+
 - **Credentials**: MongoDB credentials secured in .env file
 - **CORS**: Properly configured for development and production
 - **Headers**: Security headers via Helmet middleware
@@ -198,6 +231,7 @@ instaTool/
 ## Tailwind CSS Configuration
 
 ### Islamic Theme Integration
+
 ```javascript
 // tailwind.config.js
 module.exports = {
@@ -206,37 +240,39 @@ module.exports = {
     extend: {
       colors: {
         islamic: {
-          gold: '#FFD700',
-          green: '#228B22', 
-          blue: '#4169E1',
-          cream: '#F5F5DC'
-        }
+          gold: "#FFD700",
+          green: "#228B22",
+          blue: "#4169E1",
+          cream: "#F5F5DC",
+        },
       },
       fontFamily: {
-        arabic: ['Amiri', 'serif'],
-        modern: ['Inter', 'sans-serif']
-      }
+        arabic: ["Amiri", "serif"],
+        modern: ["Inter", "sans-serif"],
+      },
     },
   },
   plugins: [],
-}
+};
 ```
 
 ### Theme Implementation
+
 ```javascript
 // Theme gradients for Instagram posts
 const themes = {
-  gold: 'linear-gradient(135deg, #FFD700, #FFA500)',
-  blue: 'linear-gradient(135deg, #4A90E2, #7B68EE)',
-  geometric: 'linear-gradient(135deg, #667eea, #764ba2)',
-  calligraphy: 'linear-gradient(135deg, #2E7D32, #4CAF50)',
-  modern: 'linear-gradient(135deg, #263238, #37474F)'
-}
+  gold: "linear-gradient(135deg, #FFD700, #FFA500)",
+  blue: "linear-gradient(135deg, #4A90E2, #7B68EE)",
+  geometric: "linear-gradient(135deg, #667eea, #764ba2)",
+  calligraphy: "linear-gradient(135deg, #2E7D32, #4CAF50)",
+  modern: "linear-gradient(135deg, #263238, #37474F)",
+};
 ```
 
 ## Environment Configuration
 
 ### .env Structure (Secure)
+
 ```env
 # Database
 MONGODB_URI=mongodb+srv://[username]:[password]@cluster000.n00tsc0.mongodb.net/insta_tool
@@ -251,19 +287,21 @@ IMAGE_DIR=generated_images
 ## Development Commands
 
 ### Quick Start (Single Command)
+
 ```bash
 # Start everything fresh (THE MAIN COMMAND)
 npm run everything
 
 # Expected Output:
 # - Process on port 3001 killed ✅
-# - Process on port 5173 killed ✅  
+# - Process on port 5173 killed ✅
 # - Backend: 🚀 Server running on port 3001
 # - Backend: ✅ Connected to MongoDB Atlas
 # - Frontend: ➜ Local: http://localhost:5173/
 ```
 
 ### Individual Commands
+
 ```bash
 # Install all dependencies
 npm run install:all
@@ -271,7 +309,7 @@ npm run install:all
 # Start backend only
 npm run server:dev
 
-# Start frontend only  
+# Start frontend only
 npm run client:dev
 
 # Clean ports if needed
@@ -281,17 +319,27 @@ npm run kill:ports
 ## Design Patterns Implementation
 
 ### Repository Pattern
+
 ```javascript
 // Centralized data access
 class PostRepository {
-  async create(post) { return await Post.create(post) }
-  async findById(id) { return await Post.findById(id).populate('project_id') }
-  async update(id, changes) { return await Post.findByIdAndUpdate(id, changes, {new: true}) }
-  async delete(id) { return await Post.findByIdAndDelete(id) }
+  async create(post) {
+    return await Post.create(post);
+  }
+  async findById(id) {
+    return await Post.findById(id).populate("project_id");
+  }
+  async update(id, changes) {
+    return await Post.findByIdAndUpdate(id, changes, { new: true });
+  }
+  async delete(id) {
+    return await Post.findByIdAndDelete(id);
+  }
 }
 ```
 
 ### Factory Pattern
+
 ```javascript
 // Post creation from CSV data
 class PostFactory {
@@ -300,28 +348,38 @@ class PostFactory {
       post_title: row.post_title,
       theme: row.theme,
       scheduled_for: new Date(row.scheduled_for),
-      font: row.font || 'default',
+      font: row.font || "default",
       pages: this.extractPages(row),
-      project_id: projectId
-    }
+      project_id: projectId,
+    };
   }
 }
 ```
 
 ### Observer Pattern
+
 - **Auto-Save Events**: Debounced automatic saves during editing
 - **State Updates**: React context for global state management
 - **UI Updates**: Real-time feedback for user interactions
 
-## Future Enhancements
+## Completed Enhancements ✅
 
-### Immediate Priorities
-1. **Image Generation**: Canvas/Sharp integration for 1080x1080 exports
+### Production-Ready Features
+
+1. ✅ **Image Generation**: Sharp integration for 1080x1080 exports - COMPLETE
+2. ✅ **Cloud Storage**: Cloudinary integration with secure URLs - COMPLETE
+3. ✅ **Export System**: PNG/JPG download functionality - COMPLETE
+4. ✅ **Visual Interface**: Web-based testing with image previews - COMPLETE
+
+### Future Priorities
+
+1. **Instagram Publishing**: Direct Instagram Business API integration
 2. **Advanced Text Formatting**: Underline, font size presets, color picker
-3. **Export System**: PNG/JPG download functionality
-4. **Template System**: Save and reuse successful post layouts
+3. **Template System**: Save and reuse successful post layouts
+4. **Bulk Operations**: Multiple post scheduling and generation
 
 ### Scalability Considerations
+
 - **Microservices**: Separate image generation service
 - **Caching**: Redis for frequently accessed data
 - **CDN**: Static asset delivery for generated images

@@ -25,6 +25,12 @@ const Navbar = ({ isEditingMode = false }) => {
       icon: "📅",
       description: "Scheduled posts",
     },
+    {
+      name: "Image Test",
+      href: "/image-test",
+      icon: "🎨",
+      description: "Test image generation",
+    },
   ];
 
   const designTools = [

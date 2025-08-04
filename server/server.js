@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-require("dotenv").config({ path: "../.env" });
+require("dotenv").config({ path: "./.env" });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,6 +44,7 @@ app.get("/api/health", (req, res) => {
 // API Routes
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/upload", require("./routes/upload"));
+app.use("/api/images", require("./routes/imageGeneration"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -8,6 +8,7 @@ import Projects from "./pages/Projects";
 import ScheduledPosts from "./pages/ScheduledPosts";
 import TailwindTest from "./pages/TailwindTest";
 import SimpleTest from "./pages/SimpleTest";
+import ImageTest from "./pages/ImageTest";
 
 // Create editing context
 const EditingContext = createContext();
@@ -33,6 +34,7 @@ function App() {
               <Route path="/scheduled" element={<ScheduledPosts />} />
               <Route path="/test" element={<TailwindTest />} />
               <Route path="/simple" element={<SimpleTest />} />
+              <Route path="/image-test" element={<ImageTest />} />
             </Routes>
           </main>
         </div>

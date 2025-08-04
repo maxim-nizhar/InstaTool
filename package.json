@@ -30,6 +30,7 @@
     "kill-port": "^2.0.1"
   },
   "dependencies": {
+    "cloudinary": "^2.7.0",
     "express": "^5.1.0",
     "mongoose": "^8.17.0"
   }

@@ -39,7 +39,7 @@ const PostSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["draft", "scheduled", "published", "failed"],
-    default: "scheduled",
+    default: "draft",
   },
   image_urls: [
     {
@@ -47,6 +47,10 @@ const PostSchema = new mongoose.Schema({
       url: String,
     },
   ],
+  generatedImageUrls: {
+    type: [String],
+    default: [],
+  },
   created_at: {
     type: Date,
     default: Date.now,
