@@ -45,6 +45,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/upload", require("./routes/upload"));
 app.use("/api/images", require("./routes/imageGeneration"));
+app.use("/api/instagram", require("./routes/instagram"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

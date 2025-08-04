@@ -59,6 +59,12 @@ const PostSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  published_at: {
+    type: Date,
+  },
+  error_message: {
+    type: String,
+  },
   created_at: {
     type: Date,
     default: Date.now,
