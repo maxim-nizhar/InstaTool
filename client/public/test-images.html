@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Generation Test - InstaTool</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .test-section {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .image-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+      }
+      .image-card img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+      }
+      .image-info {
+        padding: 15px;
+        background: #f8f9fa;
+      }
+      .test-controls {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .success {
+        color: #28a745;
+        font-weight: bold;
+      }
+      .error {
+        color: #dc3545;
+        font-weight: bold;
+      }
+      #status {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 5px;
+        display: none;
+      }
+      .status-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .status-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>📸 InstaTool Image Generation Test</h1>
+      <p>
+        Testing the improved Sharp image generation with text wrapping and HTML
+        formatting
+      </p>
+    </div>
+
+    <div class="test-section">
+      <h2>🔍 Preview Tests</h2>
+      <div class="test-controls">
+        <button onclick="testSimpleText()">Test Simple Text</button>
+        <button onclick="testFormattedText()">Test HTML Formatting</button>
+        <button onclick="testLongText()">Test Text Wrapping</button>
+        <button onclick="testArabicText()">Test Arabic Text</button>
+        <button onclick="testAllThemes()">Test All Themes</button>
+      </div>
+      <div id="status"></div>
+      <div id="preview-results" class="image-grid"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📋 Recent Generated Images</h2>
+      <p>Generated images from the improved service:</p>
+      <div class="image-grid">
+        <div class="image-card">
+          <img
+            src="http://localhost:3001/api/images/view/preview_1754311529712.png"
+            alt="HTML Formatting Test"
+          />
+          <div class="image-info">
+            <strong>HTML Formatting Test</strong><br />
+            Content: "And be <b>patient</b>. Your <i>patience</i> is only by
+            Allah."<br />
+            Theme: Geometric | Font: Arial
+          </div>
+        </div>
+        <div class="image-card">
+          <img
+            src="http://localhost:3001/api/images/view/preview_1754311554907.png"
+            alt="Text Wrapping Test"
+          />
+          <div class="image-info">
+            <strong>Text Wrapping Test</strong><br />
+            Content: Long text with HTML formatting<br />
+            Theme: Calligraphy | Font: Arial
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>🎨 Generated Post Images</h2>
+      <p>Islamic Wisdom - Patience post (5 pages):</p>
+      <div class="image-grid">
+        <div class="image-card">
+          <img
+            src="https://res.cloudinary.com/dbg6jdgbb/image/upload/v1754311543/insta-tool/posts/688d03d245ecbf3ae49c36a2_Islamic_Wisdom___Patience_page_1.jpg"
+            alt="Page 1"
+          />
+          <div class="image-info"><strong>Page 1:</strong> Arabic Text</div>
+        </div>
+        <div class="image-card">
+          <img
+            src="https://res.cloudinary.com/dbg6jdgbb/image/upload/v1754311543/insta-tool/posts/688d03d245ecbf3ae49c36a2_Islamic_Wisdom___Patience_page_2.jpg"
+            alt="Page 2"
+          />
+          <div class="image-info">
+            <strong>Page 2:</strong> HTML Formatted Text
+          </div>
+        </div>
+        <div class="image-card">
+          <img
+            src="https://res.cloudinary.com/dbg6jdgbb/image/upload/v1754311543/insta-tool/posts/688d03d245ecbf3ae49c36a2_Islamic_Wisdom___Patience_page_3.jpg"
+            alt="Page 3"
+          />
+          <div class="image-info"><strong>Page 3:</strong> Plain Text</div>
+        </div>
+        <div class="image-card">
+          <img
+            src="https://res.cloudinary.com/dbg6jdgbb/image/upload/v1754311543/insta-tool/posts/688d03d245ecbf3ae49c36a2_Islamic_Wisdom___Patience_page_4.jpg"
+            alt="Page 4"
+          />
+          <div class="image-info"><strong>Page 4:</strong> Plain Text</div>
+        </div>
+        <div class="image-card">
+          <img
+            src="https://res.cloudinary.com/dbg6jdgbb/image/upload/v1754311543/insta-tool/posts/688d03d245ecbf3ae49c36a2_Islamic_Wisdom___Patience_page_5.jpg"
+            alt="Page 5"
+          />
+          <div class="image-info"><strong>Page 5:</strong> Plain Text</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showStatus(message, isError = false) {
+        const status = document.getElementById("status");
+        status.textContent = message;
+        status.className = isError ? "status-error" : "status-success";
+        status.style.display = "block";
+      }
+
+      function hideStatus() {
+        document.getElementById("status").style.display = "none";
+      }
+
+      async function generatePreview(
+        content,
+        theme = "modern",
+        font = "Arial"
+      ) {
+        try {
+          const response = await fetch(
+            "http://localhost:3001/api/images/preview",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ content, theme, font }),
+            }
+          );
+
+          const result = await response.json();
+          if (result.success) {
+            return result.image;
+          } else {
+            throw new Error(result.message || "Generation failed");
+          }
+        } catch (error) {
+          console.error("Preview generation error:", error);
+          throw error;
+        }
+      }
+
+      function displayImage(imageData, description) {
+        const resultsContainer = document.getElementById("preview-results");
+        const imageCard = document.createElement("div");
+        imageCard.className = "image-card";
+        imageCard.innerHTML = `
+                <img src="http://localhost:3001${imageData.url}" alt="${description}">
+                <div class="image-info">
+                    <strong>${description}</strong><br>
+                    Theme: ${imageData.theme} | Font: ${imageData.font}<br>
+                    Size: ${imageData.sizeFormatted}
+                </div>
+            `;
+        resultsContainer.appendChild(imageCard);
+      }
+
+      async function testSimpleText() {
+        hideStatus();
+        showStatus("Generating simple text preview...");
+        try {
+          const image = await generatePreview(
+            "SubhanAllah - Glory be to Allah",
+            "gold",
+            "Arial"
+          );
+          displayImage(image, "Simple Text Test");
+          showStatus("✅ Simple text generation successful!");
+        } catch (error) {
+          showStatus(`❌ Error: ${error.message}`, true);
+        }
+      }
+
+      async function testFormattedText() {
+        hideStatus();
+        showStatus("Generating HTML formatted text preview...");
+        try {
+          const image = await generatePreview(
+            "This is <b>bold text</b> and this is <i>italic text</i> combined together.",
+            "blue",
+            "Arial"
+          );
+          displayImage(image, "HTML Formatting Test");
+          showStatus("✅ HTML formatting generation successful!");
+        } catch (error) {
+          showStatus(`❌ Error: ${error.message}`, true);
+        }
+      }
+
+      async function testLongText() {
+        hideStatus();
+        showStatus("Generating long text with wrapping...");
+        try {
+          const longText =
+            "This is a very long text that should automatically wrap to multiple lines within the image boundaries. The improved algorithm should handle this gracefully without going outside the image bounds. This tests the text wrapping functionality thoroughly.";
+          const image = await generatePreview(longText, "geometric", "Arial");
+          displayImage(image, "Text Wrapping Test");
+          showStatus("✅ Text wrapping generation successful!");
+        } catch (error) {
+          showStatus(`❌ Error: ${error.message}`, true);
+        }
+      }
+
+      async function testArabicText() {
+        hideStatus();
+        showStatus("Generating Arabic text preview...");
+        try {
+          const image = await generatePreview(
+            "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+            "calligraphy",
+            "Arial"
+          );
+          displayImage(image, "Arabic Text Test");
+          showStatus("✅ Arabic text generation successful!");
+        } catch (error) {
+          showStatus(`❌ Error: ${error.message}`, true);
+        }
+      }
+
+      async function testAllThemes() {
+        hideStatus();
+        showStatus("Generating previews for all themes...");
+        const themes = ["gold", "blue", "geometric", "calligraphy", "modern"];
+        const testText = "Testing <b>all themes</b> with <i>formatting</i>";
+
+        try {
+          for (const theme of themes) {
+            const image = await generatePreview(testText, theme, "Arial");
+            displayImage(
+              image,
+              `${theme.charAt(0).toUpperCase() + theme.slice(1)} Theme`
+            );
+          }
+          showStatus("✅ All theme generation successful!");
+        } catch (error) {
+          showStatus(`❌ Error: ${error.message}`, true);
+        }
+      }
+
+      // Clear results button
+      document.addEventListener("DOMContentLoaded", function () {
+        const clearButton = document.createElement("button");
+        clearButton.textContent = "Clear Results";
+        clearButton.onclick = function () {
+          document.getElementById("preview-results").innerHTML = "";
+          hideStatus();
+        };
+        document.querySelector(".test-controls").appendChild(clearButton);
+      });
+    </script>
+  </body>
+</html>

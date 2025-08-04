@@ -30,12 +30,12 @@ const THEME_CONFIGS = {
   },
 };
 
-// Font family mappings
+// Font family mappings - match frontend exactly
 const FONT_FAMILIES = {
-  "Canva Sans": "Arial", // Fallback to Arial for server-side rendering
-  Arial: "Arial",
-  "Times New Roman": "Times",
-  default: "Arial",
+  "Canva Sans": "system-ui, -apple-system, BlinkMacSystemFont, sans-serif", // Match frontend
+  Arial: "Arial, sans-serif",
+  "Times New Roman": "Times, serif",
+  default: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
 };
 
 /**
@@ -70,7 +70,160 @@ const createGradientBackground = (theme) => {
 };
 
 /**
- * Creates an SVG text element with proper formatting
+ * Estimates text width for SVG text element
+ * @param {string} text - The text content
+ * @param {number} fontSize - Font size in pixels
+ * @param {string} fontFamily - Font family
+ * @param {number} fontWeight - Font weight
+ * @returns {number} Estimated width in pixels
+ */
+const estimateTextWidth = (
+  text,
+  fontSize,
+  fontFamily = "Arial",
+  fontWeight = 400
+) => {
+  // Character width multipliers (approximate)
+  const charWidths = {
+    Arial: 0.52,
+    Times: 0.48,
+    Helvetica: 0.52,
+    "system-ui": 0.52,
+  };
+
+  const baseWidth = charWidths[fontFamily] || 0.52;
+  const weightMultiplier = fontWeight >= 600 ? 1.1 : 1.0;
+
+  return text.length * fontSize * baseWidth * weightMultiplier;
+};
+
+/**
+ * Wraps text to fit within specified width
+ * @param {string} text - Text to wrap
+ * @param {number} maxWidth - Maximum width in pixels
+ * @param {number} fontSize - Font size
+ * @param {string} fontFamily - Font family
+ * @param {number} fontWeight - Font weight
+ * @returns {string[]} Array of wrapped lines
+ */
+const wrapText = (
+  text,
+  maxWidth,
+  fontSize,
+  fontFamily = "Arial",
+  fontWeight = 400
+) => {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const lineWidth = estimateTextWidth(
+      testLine,
+      fontSize,
+      fontFamily,
+      fontWeight
+    );
+
+    if (lineWidth <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        // Single word is too long, force it onto a line
+        lines.push(word);
+      }
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.filter((line) => line.trim());
+};
+
+/**
+ * Parses HTML content and extracts formatted text segments
+ * @param {string} content - HTML content
+ * @returns {Array} Array of text segments with formatting info
+ */
+const parseFormattedContent = (content) => {
+  // Handle common HTML elements while preserving formatting
+  let processedContent = content
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<p[^>]*>/gi, "")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<div[^>]*>/gi, "");
+
+  const segments = [];
+  let currentPos = 0;
+
+  // Regex to match bold, italic, and other formatting tags
+  const formatRegex = /<(b|strong|i|em|u)[^>]*>(.*?)<\/\1>/gi;
+  let match;
+
+  while ((match = formatRegex.exec(processedContent)) !== null) {
+    // Add text before the formatted segment
+    if (match.index > currentPos) {
+      const beforeText = processedContent.slice(currentPos, match.index);
+      if (beforeText.trim()) {
+        segments.push({
+          text: beforeText.trim(),
+          bold: false,
+          italic: false,
+          underline: false,
+        });
+      }
+    }
+
+    // Add the formatted segment
+    const tag = match[1].toLowerCase();
+    segments.push({
+      text: match[2],
+      bold: tag === "b" || tag === "strong",
+      italic: tag === "i" || tag === "em",
+      underline: tag === "u",
+    });
+
+    currentPos = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (currentPos < processedContent.length) {
+    const remainingText = processedContent.slice(currentPos);
+    if (remainingText.trim()) {
+      segments.push({
+        text: remainingText.trim(),
+        bold: false,
+        italic: false,
+        underline: false,
+      });
+    }
+  }
+
+  // If no formatting found, return the whole content as plain text
+  if (segments.length === 0) {
+    const plainText = processedContent.replace(/<[^>]*>/g, "").trim();
+    if (plainText) {
+      segments.push({
+        text: plainText,
+        bold: false,
+        italic: false,
+        underline: false,
+      });
+    }
+  }
+
+  return segments;
+};
+
+/**
+ * Creates an SVG text element with proper formatting and text wrapping
  * @param {string} content - The text content (HTML string)
  * @param {string} theme - The theme name
  * @param {string} font - The font family
@@ -80,50 +233,85 @@ const createTextSVG = (content, theme, font = "Arial") => {
   const config = THEME_CONFIGS[theme] || THEME_CONFIGS.modern;
   const fontFamily = FONT_FAMILIES[font] || FONT_FAMILIES.default;
 
-  // Strip HTML tags and convert basic formatting
-  let textContent = content
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
-    .replace(/<p[^>]*>/gi, "")
-    .replace(/<\/div>/gi, "\n")
-    .replace(/<div[^>]*>/gi, "")
-    .replace(/<[^>]*>/g, "") // Remove any remaining HTML tags
-    .trim();
+  // Image dimensions and padding
+  const imageWidth = 1080;
+  const imageHeight = 1080;
+  const padding = 60; // Increased padding for better readability
+  const maxTextWidth = imageWidth - padding * 2;
 
-  // Handle bold and italic formatting
-  const isBold =
-    content.includes("<b>") ||
-    content.includes("<strong>") ||
-    content.includes("font-weight: bold");
-  const isItalic =
-    content.includes("<i>") ||
-    content.includes("<em>") ||
-    content.includes("font-style: italic");
+  // Parse formatted content
+  const segments = parseFormattedContent(content);
+  if (segments.length === 0) return "";
 
-  // Calculate font size based on content length for optimal fit
-  const baseSize = 48;
-  const maxLength = 200;
-  const fontSize = Math.max(
-    28,
-    Math.min(baseSize, baseSize - (textContent.length / maxLength) * 20)
+  // Calculate total text length for font sizing
+  const totalTextLength = segments.reduce(
+    (sum, segment) => sum + segment.text.length,
+    0
   );
 
-  // Split text into lines for better positioning
-  const lines = textContent.split("\n").filter((line) => line.trim());
-  const lineHeight = fontSize * 1.4;
-  const totalHeight = lines.length * lineHeight;
-  const startY = (1080 - totalHeight) / 2 + fontSize;
+  // Dynamic font sizing based on content length and image size
+  let baseFontSize = 48;
+  if (totalTextLength > 300) baseFontSize = 32;
+  else if (totalTextLength > 200) baseFontSize = 36;
+  else if (totalTextLength > 100) baseFontSize = 42;
 
-  // Create SVG text elements for each line
-  const textElements = lines
+  const fontSize = Math.max(24, Math.min(baseFontSize, 54));
+  const lineHeight = fontSize * 1.4;
+
+  // Process each segment and wrap text
+  const allLines = [];
+
+  segments.forEach((segment) => {
+    const weight = segment.bold ? config.fontWeight + 100 : config.fontWeight;
+    const wrappedLines = wrapText(
+      segment.text,
+      maxTextWidth,
+      fontSize,
+      fontFamily,
+      weight
+    );
+
+    wrappedLines.forEach((line) => {
+      allLines.push({
+        text: line,
+        bold: segment.bold,
+        italic: segment.italic,
+        underline: segment.underline,
+      });
+    });
+  });
+
+  // Calculate vertical positioning
+  const totalHeight = allLines.length * lineHeight;
+  const startY = (imageHeight - totalHeight) / 2 + fontSize * 0.75;
+
+  // Create SVG text elements
+  const textElements = allLines
     .map((line, index) => {
       const y = startY + index * lineHeight;
-      const weight = isBold ? config.fontWeight + 100 : config.fontWeight;
-      const style = isItalic ? "italic" : "normal";
+      const x = imageWidth / 2; // Always center horizontally
+      const weight = line.bold ? config.fontWeight + 100 : config.fontWeight;
+      const style = line.italic ? "italic" : "normal";
+
+      // Handle underline with additional styling
+      const underlineElement = line.underline
+        ? `<line x1="${
+            x - estimateTextWidth(line.text, fontSize, fontFamily, weight) / 2
+          }" 
+             y1="${y + fontSize * 0.1}" 
+             x2="${
+               x +
+               estimateTextWidth(line.text, fontSize, fontFamily, weight) / 2
+             }" 
+             y2="${y + fontSize * 0.1}" 
+             stroke="${config.textColor}" 
+             stroke-width="2"/>`
+        : "";
 
       return `
+      ${underlineElement}
       <text 
-        x="540" 
+        x="${x}" 
         y="${y}" 
         text-anchor="middle" 
         font-family="${fontFamily}" 
@@ -132,7 +320,7 @@ const createTextSVG = (content, theme, font = "Arial") => {
         font-style="${style}"
         fill="${config.textColor}"
         dominant-baseline="middle"
-      >${line
+      >${line.text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")}</text>
@@ -181,9 +369,7 @@ const generatePageImage = async (pageData) => {
           </linearGradient>
         </defs>
         <rect width="1080" height="1080" fill="url(#grad)"/>
-        <g transform="translate(40, 0)">
-          ${textSvg}
-        </g>
+        ${textSvg}
       </svg>
     `;
 
